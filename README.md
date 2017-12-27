@@ -86,3 +86,7 @@ Organize and persist data to the hard disk.
 __db.close()__
 
 Close current db, the `db.dump()` method will be called by `db.close()`.
+
+## License
+
+MIT.
