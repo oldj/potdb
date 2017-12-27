@@ -75,8 +75,7 @@ test('remove', async t => {
   db.close()
 
   let db2 = cupDB(fn1)
-  console.log(await db2.getItem('rr'))
   t.is((await db2.getItem('rr')).join('.'), '1.2.3')
-  //db2.remove('rr')
-  //t.is(await db2.getItem('rr'), undefined)
+  db2.remove('rr')
+  t.is(await db2.getItem('rr'), undefined)
 })
