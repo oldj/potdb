@@ -62,4 +62,21 @@ test('random write', async t => {
   let db2 = cupDB(fn1)
   t.true(await db2.getItem('rw5') > 5)
   t.true(await db2.getItem('rw25') < 26)
+
+  let s = 'abcdefghijklmn汉字123~!@#'
+  d.map(async (i, idx) => await db.setItem('rw:s' + idx, idx + s))
+  t.is(await db2.getItem('rw:s95'), '95' + s)
+})
+
+test('remove', async t => {
+  let db = t.context.db
+
+  db.setItem('rr', ['1', '2', '3'])
+  db.close()
+
+  let db2 = cupDB(fn1)
+  console.log(await db2.getItem('rr'))
+  t.is((await db2.getItem('rr')).join('.'), '1.2.3')
+  //db2.remove('rr')
+  //t.is(await db2.getItem('rr'), undefined)
 })
