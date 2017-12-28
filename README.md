@@ -16,7 +16,7 @@ const db = cup('data.db')
 await db.setItem('a', 123)
 await db.setItem('b', 'BBB')
 await db.setItem('c', ['a', 'b', 'c'])
-awiat db.setItem('d', {x: 100, y: 200})
+await db.setItem('d', {x: 100, y: 200})
 
 // get
 await db.getItem('a') // 123
