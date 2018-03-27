@@ -10,10 +10,12 @@ const {EOL} = require('os')
 const readline = require('readline')
 const stream = require('stream')
 const isSimpleObject = require('./libs/isSimpleObject')
-const waitUntil = require('./libs/waitUntil')
+//const waitUntil = require('./libs/waitUntil')
 const appendFile = util.promisify(fs.appendFile)
 const unlink = util.promisify(fs.unlink)
 const rename = util.promisify(fs.rename)
+
+const action_del = '$$_DEL_$$'
 
 class Cup {
   constructor (fn, options = {}) {
@@ -34,6 +36,12 @@ class Cup {
     let key = line.substring(0, idx)
     let value = line.substring(idx + 1)
 
+    switch (key) {
+      case action_del:
+        delete this._data[value]
+        return
+    }
+
     try {
       this._data[key] = value ? JSON.parse(value) : ''
     } catch (e) {
@@ -43,6 +51,8 @@ class Cup {
 
   _load () {
     return new Promise((resolve) => {
+      this._data = {}
+
       let instream = fs.createReadStream(this.fn)
       let outstream = new stream()
       let rl = readline.createInterface(instream, outstream)
@@ -58,19 +68,23 @@ class Cup {
     })
   }
 
-  async getItem (key) {
-    if (!this._is_loaded) {
+  isChanged () {
+    return this._is_changed
+  }
+
+  async getItem (key, force = false) {
+    if (force || !this._is_loaded) {
       await this._load()
     }
     return this._data[key.toString()]
   }
 
-  async getItems (keys) {
-    return keys.map(async k => await this.getItem(k))
+  async getItems (keys, force = false) {
+    return keys.map(async k => await this.getItem(k, force))
   }
 
-  async getAll (keys) {
-    if (!this._is_loaded) {
+  async getAll (force = false) {
+    if (force || !this._is_loaded) {
       await this._load()
     }
 
@@ -85,12 +99,7 @@ class Cup {
     return Object.keys(this._data)
   }
 
-  async setItem (key, value) {
-    key = key.toString()
-    if (!key || key.indexOf('=') > -1) {
-      throw `bad key [${key}].`
-    }
-
+  async _setItem (key, value) {
     if (!isSimpleObject(value)) {
       throw 'value must be a simple object.'
     }
@@ -99,6 +108,15 @@ class Cup {
     this._is_changed = true
     let d = JSON.stringify(value)
     await appendFile(this.fn, `${EOL}${key}=${d}`, 'utf-8')
+  }
+
+  async setItem (key, value) {
+    key = key.toString()
+    if (!key || key.indexOf('=') > -1 || /^\$\$_\w+_\$\$$/.test(key)) {
+      throw `bad key [${key}].`
+    }
+
+    await this._setItem(key, value)
   }
 
   async setItems (obj) {
@@ -119,20 +137,26 @@ class Cup {
       await this._load()
     }
 
+    const delOne = async (k) => {
+      delete this._data[k]
+      await this._setItem(action_del, k)
+    }
+
     if (Array.isArray(key)) {
-      key.map(k => delete this._data[k])
+      key.map(async k => await delOne(k))
     } else {
-      delete this._data[key]
+      await delOne(key)
     }
   }
 
   /**
    * find records
    * @param filter {Function}
+   * @param force {Boolean}
    * @returns {Promise<Array>}
    */
-  async find (filter) {
-    if (!this._is_loaded) {
+  async find (filter, force = false) {
+    if (force || !this._is_loaded) {
       await this._load()
     }
 
