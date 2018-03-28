@@ -80,7 +80,10 @@ class Cup {
   }
 
   async getItems (keys, force = false) {
-    return keys.map(async k => await this.getItem(k, force))
+    if (force) {
+      await this._load()
+    }
+    return await Promise.all(keys.map(async k => await this.getItem(k)))
   }
 
   async getAll (force = false) {
@@ -143,7 +146,7 @@ class Cup {
     }
 
     if (Array.isArray(key)) {
-      key.map(async k => await delOne(k))
+      await Promise.all(key.map(async k => await delOne(k)))
     } else {
       await delOne(key)
     }
@@ -188,11 +191,11 @@ class Cup {
     keys = keys.sort()
 
     let fn_tmp = [this.fn, (new Date()).getTime(), Math.floor(Math.random() * 1000), 'tmp'].join('.')
-    keys.map(async key => {
+    await Promise.all(keys.map(async key => {
       let value = this._data[key]
       let d = JSON.stringify(value)
       await appendFile(fn_tmp, `${key}=${d}${EOL}`, 'utf-8')
-    })
+    }))
 
     if (fs.existsSync(this.fn)) {
       await unlink(this.fn)
