@@ -197,10 +197,20 @@ class Cup {
       await appendFile(fn_tmp, `${key}=${d}${EOL}`, 'utf-8')
     }))
 
+    let backup_fn = this.fn + '.backup'
+
+    if (fs.existsSync(backup_fn)) {
+      await unlink(backup_fn)
+    }
+
     if (fs.existsSync(this.fn)) {
-      await unlink(this.fn)
+      await rename(this.fn, backup_fn)
     }
     await rename(fn_tmp, this.fn)
+
+    if (fs.existsSync(backup_fn)) {
+      await unlink(backup_fn)
+    }
 
     this._is_dumping = false
   }
