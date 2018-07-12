@@ -9,6 +9,7 @@ const util = require('util')
 const {EOL} = require('os')
 const readline = require('readline')
 const stream = require('stream')
+const series = require('./libs/series')
 const isSimpleObject = require('./libs/isSimpleObject')
 //const waitUntil = require('./libs/waitUntil')
 const appendFile = util.promisify(fs.appendFile)
@@ -83,7 +84,7 @@ class Cup {
     if (force) {
       await this._load()
     }
-    return await Promise.all(keys.map(async k => await this.getItem(k)))
+    return await series(keys.map(async k => await this.getItem(k)))
   }
 
   async getAll (force = false) {
@@ -146,7 +147,7 @@ class Cup {
     }
 
     if (Array.isArray(key)) {
-      await Promise.all(key.map(async k => await delOne(k)))
+      await series(key.map(async k => await delOne(k)))
     } else {
       await delOne(key)
     }
@@ -191,7 +192,7 @@ class Cup {
     keys = keys.sort()
 
     let fn_tmp = [this.fn, (new Date()).getTime(), Math.floor(Math.random() * 1000), 'tmp'].join('.')
-    await Promise.all(keys.map(async key => {
+    await series(keys.map(async key => {
       let value = this._data[key]
       let d = JSON.stringify(value)
       await appendFile(fn_tmp, `${key}=${d}${EOL}`, 'utf-8')
