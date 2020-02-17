@@ -16,7 +16,7 @@ const fn1 = path.join(tmp_dir, '1.db')
 
 test.beforeEach(async t => {
   //fs.existsSync(fn) && fs.unlinkSync(fn)
-  if (!fs.statSync(tmp_dir).isDirectory()) {
+  if (!fs.existsSync(tmp_dir) || !fs.statSync(tmp_dir).isDirectory()) {
     mkdirp(tmp_dir)
   }
 
@@ -44,13 +44,13 @@ test('read', async t => {
   let fn = path.join(tmp_dir, '00.db')
   let db1 = cupDB(fn)
   let db2 = cupDB(fn)
-  db1.setItem('a155050', 'AA')
+  await db1.setItem('a155050', 'AA')
   t.is(await db2.getItem('a155050'), 'AA')
   t.is(await db.getItem('a155050'), undefined)
   //t.is(await db.getItem('a'), 1)
 
-  db1.close()
-  db2.close()
+  await db1.close()
+  await db2.close()
 })
 
 test('random write', async t => {

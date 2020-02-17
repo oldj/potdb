@@ -54,6 +54,11 @@ class Cup {
     return new Promise((resolve) => {
       this._data = {}
 
+      if (!fs.existsSync(this.fn)) {
+        resolve()
+        return
+      }
+
       let instream = fs.createReadStream(this.fn)
       let outstream = new stream()
       let rl = readline.createInterface(instream, outstream)
