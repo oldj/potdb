@@ -1,6 +1,6 @@
 {
   "name": "cupdb",
-  "version": "1.0.8",
+  "version": "2.0.0",
   "description": "a text based key-value database for node.js",
   "main": "./src/index.js",
   "scripts": {
@@ -17,24 +17,5 @@
   },
   "homepage": "https://github.com/oldj/cupdb#readme",
   "devDependencies": {
-    "ava": "^0.24.0",
-    "mkdirp": "^0.5.1",
-    "ramda": "^0.25.0"
-  },
-  "ava": {
-    "files": [
-      "src/**/*.spec.js",
-      "test/*.js",
-      "!**/node_modules/**/*.*"
-    ],
-    "source": [
-      "**/*.{js,jsx}",
-      "!dist/**/*"
-    ],
-    "match": [],
-    "concurrency": 5,
-    "failFast": true,
-    "tap": true,
-    "powerAssert": false
   }
 }
