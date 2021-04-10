@@ -12,7 +12,7 @@ import IO from '../io'
 interface Options extends IBasicOptions {
 }
 
-export default class LatSet {
+export default class PotSet {
   private _data: DataTypeSet | null = null
   private _io: IO
   private _path: string

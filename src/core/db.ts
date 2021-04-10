@@ -11,7 +11,7 @@ import { DataTypeDocument, IBasicOptions, IDbDataJSON } from '../typings'
 import Collection from './type/collection'
 import Dict from './type/dict'
 import List from './type/list'
-import LatSet from './type/set'
+import PotSet from './type/set'
 
 interface IDBOptions extends IBasicOptions {
 }
@@ -21,11 +21,11 @@ export default class PotDb {
   options: IDBOptions
   dict: { [key: string]: Dict }
   list: { [key: string]: List }
-  set: { [key: string]: LatSet }
+  set: { [key: string]: PotSet }
   collection: { [key: string]: Collection }
   private _dict: { [key: string]: Dict } = {}
   private _list: { [key: string]: List } = {}
-  private _set: { [key: string]: LatSet } = {}
+  private _set: { [key: string]: PotSet } = {}
   private _collection: { [key: string]: Collection } = {}
 
   constructor(root_dir: string, options?: Partial<IDBOptions>) {
@@ -59,10 +59,10 @@ export default class PotDb {
     })
 
     this.set = new Proxy({}, {
-      get: (target: {}, key: PropertyKey, receiver: any): LatSet => {
+      get: (target: {}, key: PropertyKey, receiver: any): PotSet => {
         let name: string = key.toString()
         if (!this._set.hasOwnProperty(name)) {
-          this._set[name] = new LatSet(name, path.join(this.dir, 'set'), this.options)
+          this._set[name] = new PotSet(name, path.join(this.dir, 'set'), this.options)
         }
 
         return this._set[name]
