@@ -1,11 +1,11 @@
-# CupDB
+# PotDB
 
 A text based key-value database for Node and Electron.
 
 ## Usage
 
 ```bash
-npm install cupdb
+npm install potdb
 ```
 
 
