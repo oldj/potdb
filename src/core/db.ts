@@ -16,7 +16,7 @@ import LatSet from './type/set'
 interface IDBOptions extends IBasicOptions {
 }
 
-export default class LatDb {
+export default class PotDb {
   dir: string
   options: IDBOptions
   dict: { [key: string]: Dict }

@@ -9,7 +9,7 @@ import fs from 'fs'
 import path from 'path'
 import settings from 'src/settings'
 import { IDbDataJSON } from 'src/typings'
-import LatDb from '../src'
+import PotDb from '../src'
 
 describe('dump and load test', function () {
   this.timeout(settings.io_dump_delay * 2 + 2000)
@@ -30,7 +30,7 @@ describe('dump and load test', function () {
   })
 
   it('dump test', async () => {
-    const db = new LatDb(db_path, { debug })
+    const db = new PotDb(db_path, { debug })
 
     await db.dict.da.set('a', 1)
     await db.dict.da.set('b', 2)
@@ -67,7 +67,7 @@ describe('dump and load test', function () {
   })
 
   it('load test', async () => {
-    const db = new LatDb(db_path, { debug })
+    const db = new PotDb(db_path, { debug })
 
     let data: IDbDataJSON = {
       dict: {
@@ -122,7 +122,7 @@ describe('dump and load test', function () {
   })
 
   it('collection meta test', async () => {
-    const db = new LatDb(db_path, { debug })
+    const db = new PotDb(db_path, { debug })
 
     await db.collection.m1.insert({ a: 1 })
     await db.collection.m1.insert({ a: 2 })

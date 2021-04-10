@@ -8,7 +8,7 @@ import assert = require('assert')
 import settings from '@/settings'
 import fs from 'fs'
 import path from 'path'
-import LatDb from '../src'
+import PotDb from '../src'
 import List from '@/core/type/list'
 
 describe('list test', function () {
@@ -30,7 +30,7 @@ describe('list test', function () {
   })
 
   it('basic test', async () => {
-    const db = new LatDb(db_path, { debug })
+    const db = new PotDb(db_path, { debug })
     // console.log(db)
     assert(db.dir === db_path)
 
@@ -98,12 +98,12 @@ describe('list test', function () {
   })
 
   it('list persistent test', async () => {
-    const db = new LatDb(db_path, { debug })
+    const db = new PotDb(db_path, { debug })
     db.list.persistent_test.rextend(1, 2, 3, 4, 5, '6')
 
     await new Promise(resolve => setTimeout(resolve, settings.io_dump_delay * 2))
 
-    const db2 = new LatDb(db_path, { debug })
+    const db2 = new PotDb(db_path, { debug })
     assert((await db2.list.persistent_test.all()).join('.') === '1.2.3.4.5.6')
   })
 })

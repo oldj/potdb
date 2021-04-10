@@ -10,7 +10,7 @@ import * as path from 'path'
 import { DataTypeDocument } from '../../typings'
 import { asInt } from '../../utils/asType'
 import { clone } from '../../utils/clone'
-import LatDb from '../db'
+import PotDb from '../db'
 import Dict from './dict'
 import List from './list'
 
@@ -22,7 +22,7 @@ interface Options {
 
 export default class Collection {
   name: string
-  private _db: LatDb
+  private _db: PotDb
   private _path: string
   private _path_data: string
   private options: Options = {}
@@ -30,7 +30,7 @@ export default class Collection {
   private _ids: List
   private _docs: { [key: string]: Dict } = {}
 
-  constructor(db: LatDb, name: string) {
+  constructor(db: PotDb, name: string) {
     this._db = db
     this.name = name
     this._path = path.join(db.dir, 'collection', name)

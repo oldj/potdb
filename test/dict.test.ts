@@ -7,7 +7,7 @@
 import assert = require('assert')
 import * as fs from 'fs'
 import * as path from 'path'
-import LatDb from '../src'
+import PotDb from '../src'
 import settings from '../src/settings'
 
 describe('dict test', function () {
@@ -29,7 +29,7 @@ describe('dict test', function () {
   })
 
   it('basic test', async () => {
-    const db = new LatDb(db_path, { debug })
+    const db = new PotDb(db_path, { debug })
     // console.log(db)
     assert(db.dir === db_path)
 
@@ -48,7 +48,7 @@ describe('dict test', function () {
     assert(await db.dict.abc.get('b') === 33)
     assert((await db.dict.abc.keys()).join(':') === 'a:b')
 
-    const db2 = new LatDb(db_path, { debug })
+    const db2 = new PotDb(db_path, { debug })
     let d = db2.dict.abc2
     await d.set('bb', 'BB')
     let keys = await d.keys()
@@ -62,17 +62,17 @@ describe('dict test', function () {
   })
 
   it('set persistent test', async () => {
-    const db = new LatDb(db_path, { debug })
+    const db = new PotDb(db_path, { debug })
     await db.dict.persistent_test.set('a111', 111)
 
     await new Promise(resolve => setTimeout(resolve, settings.io_dump_delay * 2))
 
-    const db2 = new LatDb(db_path, { debug })
+    const db2 = new PotDb(db_path, { debug })
     assert((await db2.dict.persistent_test.get('a111')) === 111)
   })
 
   it('clone test', async () => {
-    const db = new LatDb(db_path, { debug })
+    const db = new PotDb(db_path, { debug })
 
     let v = { a: 1 }
     await db.dict.cc.set('a', v)
@@ -86,12 +86,12 @@ describe('dict test', function () {
   })
 
   it('remove test', async () => {
-    const db = new LatDb(db_path, { debug })
+    const db = new PotDb(db_path, { debug })
     await db.dict.remove_test.set('a', 1)
     await new Promise(resolve => setTimeout(resolve, settings.io_dump_delay * 2))
     await db.dict.remove_test.remove()
 
-    const db2 = new LatDb(db_path, { debug })
+    const db2 = new PotDb(db_path, { debug })
     let a = await db2.dict.remove_test.get('a')
     assert(!a)
   })

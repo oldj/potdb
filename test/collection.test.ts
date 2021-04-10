@@ -8,9 +8,9 @@ import assert = require('assert')
 import settings from '@/settings'
 import fs from 'fs'
 import path from 'path'
-import LatDb from '../src'
+import PotDb from '../src'
 
-// import LatDb from '../build'
+// import PotDb from '../build'
 
 interface ITestDoc1 {
   _id?: string;
@@ -37,7 +37,7 @@ describe('collection test', function () {
   })
 
   it('basic test', async () => {
-    const db = new LatDb(db_path, { debug })
+    const db = new PotDb(db_path, { debug })
 
     await db.collection.test.insert<ITestDoc1>({
       title: 'Test',
@@ -86,7 +86,7 @@ describe('collection test', function () {
   })
 
   it('delete item', async () => {
-    const db = new LatDb(db_path, { debug })
+    const db = new PotDb(db_path, { debug })
 
     await db.collection.rm_test_1.insert({ a: 1 })
     await db.collection.rm_test_1.insert({ a: 2 })

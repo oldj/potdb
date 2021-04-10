@@ -8,7 +8,7 @@ import assert = require('assert')
 import settings from '@/settings'
 import fs from 'fs'
 import path from 'path'
-import LatDb from '../src'
+import PotDb from '../src'
 
 describe('set test', function () {
   this.timeout(settings.io_dump_delay * 2 + 2000)
@@ -29,7 +29,7 @@ describe('set test', function () {
   })
 
   it('basic test', async () => {
-    const db = new LatDb(db_path, { debug })
+    const db = new PotDb(db_path, { debug })
 
     assert(await db.set.abc.has('a') === false)
     await db.set.abc.add('a')
@@ -65,12 +65,12 @@ describe('set test', function () {
   })
 
   it('set persistent test', async () => {
-    const db = new LatDb(db_path, { debug })
+    const db = new PotDb(db_path, { debug })
     db.set.persistent_test.add('a111')
 
     await new Promise(resolve => setTimeout(resolve, settings.io_dump_delay * 2))
 
-    const db2 = new LatDb(db_path, { debug })
+    const db2 = new PotDb(db_path, { debug })
     assert(await db2.set.persistent_test.has('a111'))
   })
 })
