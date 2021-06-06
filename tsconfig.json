@@ -21,7 +21,6 @@
   "include": [
     "mock/**/*",
     "src/**/*",
-    "test/**/*",
     "typings.d.ts"
   ],
   "exclude": [
