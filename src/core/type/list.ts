@@ -21,7 +21,7 @@ export default class List {
   private _path: string
   name: string
 
-  constructor(name: string, root_dir: string, options: Options) {
+  constructor (name: string, root_dir: string, options: Options) {
     this._path = path.join(root_dir, name + '.json')
     this.name = name
     this._io = new IO({
@@ -32,7 +32,7 @@ export default class List {
     })
   }
 
-  private async ensure(): Promise<DataTypeList> {
+  private async ensure (): Promise<DataTypeList> {
     if (this._data === null) {
       this._data = await this._io.load<DataTypeList>()
     }
@@ -40,21 +40,21 @@ export default class List {
     return this._data
   }
 
-  private dump() {
+  private dump () {
     if (this._data === null) return
     this._io.dump([...this._data])
       .catch(e => console.error(e))
   }
 
   @clone
-  async rpush(value: any) {
+  async rpush (value: any) {
     this._data = await this.ensure()
     this._data.push(value)
     this.dump()
   }
 
   @clone
-  async rpop(): Promise<any> {
+  async rpop (): Promise<any> {
     this._data = await this.ensure()
     let v = this._data.pop()
     this.dump()
@@ -63,21 +63,21 @@ export default class List {
   }
 
   @clone
-  async rextend(...values: any[]) {
+  async rextend (...values: any[]) {
     this._data = await this.ensure()
     this._data = [...this._data, ...values]
     this.dump()
   }
 
   @clone
-  async lpush(value: any) {
+  async lpush (value: any) {
     this._data = await this.ensure()
     this._data.unshift(value)
     this.dump()
   }
 
   @clone
-  async lpop(): Promise<any> {
+  async lpop (): Promise<any> {
     this._data = await this.ensure()
     let v = this._data.shift()
     this.dump()
@@ -86,49 +86,49 @@ export default class List {
   }
 
   @clone
-  async lextend(...values: any[]) {
+  async lextend (...values: any[]) {
     this._data = await this.ensure()
     this._data = [...values, ...this._data]
     this.dump()
   }
 
-  async push(value: any) {
+  async push (value: any) {
     await this.rpush(value)
   }
 
-  async pop(): Promise<any> {
+  async pop (): Promise<any> {
     return await this.rpop()
   }
 
-  async extend(...values: any[]) {
+  async extend (...values: any[]) {
     await this.rextend(...values)
   }
 
   @clone
-  async all(): Promise<any[]> {
+  async all (): Promise<any[]> {
     return await this.ensure()
   }
 
   @clone
-  async find(predicate: FilterPredicate): Promise<any | undefined> {
+  async find (predicate: FilterPredicate): Promise<any | undefined> {
     this._data = await this.ensure()
     return this._data.find(predicate)
   }
 
   @clone
-  async filter(predicate: FilterPredicate): Promise<any[]> {
+  async filter (predicate: FilterPredicate): Promise<any[]> {
     this._data = await this.ensure()
     return this._data.filter(predicate)
   }
 
   @clone
-  async map(predicate: MapFunction): Promise<any[]> {
+  async map (predicate: MapFunction): Promise<any[]> {
     this._data = await this.ensure()
     return this._data.map(predicate)
   }
 
   @clone
-  async index(index: number): Promise<any | undefined> {
+  async index (index: number): Promise<any | undefined> {
     this._data = await this.ensure()
 
     if (index < 0) {
@@ -144,7 +144,7 @@ export default class List {
     return this._data[index]
   }
 
-  async indexOf(predicate: string | number | boolean | null | FilterPredicate): Promise<number> {
+  async indexOf (predicate: string | number | boolean | null | FilterPredicate): Promise<number> {
     this._data = await this.ensure()
 
     if (typeof predicate === 'function') {
@@ -160,7 +160,7 @@ export default class List {
   }
 
   @clone
-  async slice(start: number, end?: number): Promise<any[]> {
+  async slice (start: number, end?: number): Promise<any[]> {
     this._data = await this.ensure()
     let args = [start]
     if (typeof end === 'number') {
@@ -170,7 +170,7 @@ export default class List {
   }
 
   @clone
-  async splice(start: number, delete_count: number, ...insert_items: any[]): Promise<any[]> {
+  async splice (start: number, delete_count: number, ...insert_items: any[]): Promise<any[]> {
     this._data = await this.ensure()
     let v = this._data.splice(start, delete_count, ...insert_items)
     this.dump()
@@ -178,7 +178,7 @@ export default class List {
   }
 
   @clone
-  async delete(predicate: FilterPredicate): Promise<any[]> {
+  async delete (predicate: FilterPredicate): Promise<any[]> {
     this._data = await this.filter(i => !predicate(i))
     this.dump()
 
@@ -186,22 +186,22 @@ export default class List {
   }
 
   @clone
-  async set(data: any[]) {
+  async set (data: any[]) {
     this._data = data
     this.dump()
   }
 
-  async clear() {
+  async clear () {
     this._data = []
     this.dump()
   }
 
-  async remove() {
+  async remove () {
     this._data = []
     await this._io.remove()
   }
 
-  async update(data: any[]) {
+  async update (data: any[]) {
     this._data = data
     this.dump()
   }

@@ -30,7 +30,7 @@ export default class Collection {
   private _ids: List
   private _docs: { [key: string]: Dict } = {}
 
-  constructor(db: PotDb, name: string) {
+  constructor (db: PotDb, name: string) {
     this._db = db
     this.name = name
     this._path = path.join(db.dir, 'collection', name)
@@ -40,14 +40,14 @@ export default class Collection {
     this._ids = new List('ids', this._path, db.options)
   }
 
-  updateConfig(options: Partial<Options>) {
+  updateConfig (options: Partial<Options>) {
     this.options = {
       ...this.options,
       ...options,
     }
   }
 
-  private async makeId(): Promise<string> {
+  private async makeId (): Promise<string> {
     let index = asInt(await this._meta.get('index'), 0)
     if (index < 0) index = 0
     index++
@@ -59,7 +59,7 @@ export default class Collection {
     return index.toString()
   }
 
-  private getDoc(_id: string): Dict {
+  private getDoc (_id: string): Dict {
     if (!this._docs[_id]) {
       this._docs[_id] = new Dict(_id, this._path_data, this._db.options)
     }
@@ -67,11 +67,11 @@ export default class Collection {
     return this._docs[_id]
   }
 
-  async count(): Promise<number> {
+  async count (): Promise<number> {
     return (await this._ids.all()).length
   }
 
-  async insert<T>(doc: T): Promise<T & { _id: string }> {
+  async insert<T> (doc: T): Promise<T & { _id: string }> {
     let _id = await this.makeId()
     let doc2 = { ...doc, _id }
     await this._insert(doc2)
@@ -83,14 +83,14 @@ export default class Collection {
    * 如果不存在 _id 参数，或者 _id 对应的文档不存在，则新建
    * 这个方法一般用在 db.loadJSON() 等场景
    */
-  async _insert(doc: DataTypeDocument) {
+  async _insert (doc: DataTypeDocument) {
     let _id = doc._id
     await this._ids.push(_id)
     let d = this.getDoc(_id)
     await d.update(doc)
   }
 
-  async all<T>(keys: string | string[] = '*'): Promise<T[]> {
+  async all<T> (keys: string | string[] = '*'): Promise<T[]> {
     let data = await Promise.all((await this._ids.all()).map(async _id => {
       let d = this.getDoc(_id)
       let doc: T = await d.toJSON<T>()
@@ -105,14 +105,14 @@ export default class Collection {
     return data as T[]
   }
 
-  async index<T>(index: number, keys: string | string[] = '*'): Promise<T | undefined> {
+  async index<T> (index: number, keys: string | string[] = '*'): Promise<T | undefined> {
     let _id = await this._ids.index(index)
     if (!_id) return
 
     return await this.find<T>(i => i._id === _id, keys)
   }
 
-  async find<T>(predicate: FilterPredicate, keys: string | string[] = '*'): Promise<T | undefined> {
+  async find<T> (predicate: FilterPredicate, keys: string | string[] = '*'): Promise<T | undefined> {
     let _ids = await this._ids.all()
 
     for (let _id of _ids) {
@@ -129,7 +129,7 @@ export default class Collection {
     }
   }
 
-  async filter<T>(predicate: FilterPredicate, keys: string | string[] = '*'): Promise<T[]> {
+  async filter<T> (predicate: FilterPredicate, keys: string | string[] = '*'): Promise<T[]> {
     let _ids = await this._ids.all()
     let list: T[] = []
 
@@ -149,7 +149,7 @@ export default class Collection {
     return list
   }
 
-  async update<T>(predicate: FilterPredicate, data: Partial<T>): Promise<T[]> {
+  async update<T> (predicate: FilterPredicate, data: Partial<T>): Promise<T[]> {
     let items = await this.filter<DataTypeDocument>(predicate)
     let out: T[] = []
 
@@ -171,7 +171,7 @@ export default class Collection {
     return out
   }
 
-  async delete(predicate: FilterPredicate) {
+  async delete (predicate: FilterPredicate) {
     while (true) {
       let item = await this.find<DataTypeDocument>(predicate)
       if (!item) break
@@ -186,21 +186,23 @@ export default class Collection {
     }
   }
 
-  async remove() {
+  async remove () {
     // remove current collection
     await this._meta.remove()
     await this._ids.remove()
     this._docs = {}
-    await fs.promises.rmdir(this._path, { recursive: true })
+    if (fs.existsSync(this._path)) {
+      await fs.promises.rm(this._path, { recursive: true })
+    }
   }
 
   @clone
-  async _getMeta() {
+  async _getMeta () {
     return await this._meta.all<DataTypeDocument>()
   }
 
   @clone
-  async _setMeta(data: any) {
+  async _setMeta (data: any) {
     let keys = Object.keys(data)
     for (let k of keys) {
       await this._meta.set(k, data[k])

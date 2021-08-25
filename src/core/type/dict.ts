@@ -18,7 +18,7 @@ export default class Dict {
   private _path: string
   name: string
 
-  constructor(name: string, dir: string, options: Options) {
+  constructor (name: string, dir: string, options: Options) {
     this._path = path.join(dir, name + '.json')
     this.name = name
     this._io = new IO({
@@ -29,7 +29,7 @@ export default class Dict {
     })
   }
 
-  private async ensure(): Promise<DataTypeDict> {
+  private async ensure (): Promise<DataTypeDict> {
     if (this._data === null) {
       this._data = await this._io.load<DataTypeDict>()
     }
@@ -37,14 +37,14 @@ export default class Dict {
     return this._data
   }
 
-  private dump() {
+  private dump () {
     if (this._data === null) return
     this._io.dump({ ...this._data })
       .catch(e => console.error(e))
   }
 
   @clone
-  async get<T>(key: string, default_value?: any): Promise<T> {
+  async get<T> (key: string, default_value?: T): Promise<T | undefined> {
     this._data = await this.ensure()
 
     if (this._data.hasOwnProperty(key)) {
@@ -55,14 +55,14 @@ export default class Dict {
   }
 
   @clone
-  async set(key: string, value: any) {
+  async set (key: string, value: any) {
     this._data = await this.ensure()
     this._data[key] = value
     this.dump()
   }
 
   @clone
-  async update<T>(obj: { [key: string]: any }): Promise<T> {
+  async update<T> (obj: { [key: string]: any }): Promise<T> {
     this._data = await this.ensure()
     this._data = {
       ...this._data,
@@ -73,7 +73,7 @@ export default class Dict {
     return this._data as T
   }
 
-  async keys(): Promise<string[]> {
+  async keys (): Promise<string[]> {
     if (this._data === null) {
       this._data = await this._io.load<DataTypeDict>()
     }
@@ -82,16 +82,16 @@ export default class Dict {
   }
 
   @clone
-  async all<T>(): Promise<T> {
+  async all<T> (): Promise<T> {
     return (await this.ensure()) as T
   }
 
   @clone
-  async toJSON<T>(): Promise<T> {
+  async toJSON<T> (): Promise<T> {
     return (await this.all()) as T
   }
 
-  async delete(key: string) {
+  async delete (key: string) {
     this._data = await this.ensure()
     if (!this._data.hasOwnProperty(key)) {
       return
@@ -100,12 +100,12 @@ export default class Dict {
     this.dump()
   }
 
-  async clear() {
+  async clear () {
     this._data = {}
     this.dump()
   }
 
-  async remove() {
+  async remove () {
     this._data = {}
     await this._io.remove()
   }

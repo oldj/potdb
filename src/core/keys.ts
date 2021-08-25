@@ -4,9 +4,9 @@
  * @homepage: https://oldj.net
  */
 
-import { isDir, isFile } from '../utils/fs2'
 import { promises as fs } from 'fs'
 import * as path from 'path'
+import { isDir, isFile } from '../utils/fs2'
 
 export interface IKeys {
   dict: string[];
@@ -30,7 +30,7 @@ const byDir = (dir: string, filenames: string[]): string[] => {
 }
 
 const getKeys = async (dir: string): Promise<IKeys> => {
-  const types: (keyof IKeys)[] = [ 'dict', 'list', 'set', 'collection' ]
+  const types: (keyof IKeys)[] = ['dict', 'list', 'set', 'collection']
   let data: Partial<IKeys> = {}
 
   for (let type of types) {

@@ -4,10 +4,10 @@
  * @homepage: https://oldj.net
  */
 
-import getKeys, { IKeys } from './keys'
 import * as path from 'path'
 import settings from '../settings'
 import { DataTypeDocument, IBasicOptions, IDbDataJSON } from '../typings'
+import getKeys, { IKeys } from './keys'
 import Collection from './type/collection'
 import Dict from './type/dict'
 import List from './type/list'
@@ -28,7 +28,7 @@ export default class PotDb {
   private _set: { [key: string]: PotSet } = {}
   private _collection: { [key: string]: Collection } = {}
 
-  constructor(root_dir: string, options?: Partial<IDBOptions>) {
+  constructor (root_dir: string, options?: Partial<IDBOptions>) {
     // if (!fs.existsSync(path) || !fs.statSync(path).isDirectory()) {
     //   throw new Error(`'${path}' is not a directory.`)
     // }
@@ -81,7 +81,7 @@ export default class PotDb {
     })
   }
 
-  private getDefaultOptions(): IDBOptions {
+  private getDefaultOptions (): IDBOptions {
     const options: IDBOptions = {
       debug: false,
       dump_delay: settings.io_dump_delay,
@@ -91,11 +91,11 @@ export default class PotDb {
     return options
   }
 
-  async keys(): Promise<IKeys> {
+  async keys (): Promise<IKeys> {
     return await getKeys(this.dir)
   }
 
-  async toJSON(): Promise<IDbDataJSON> {
+  async toJSON (): Promise<IDbDataJSON> {
     let keys = await this.keys()
     let data: IDbDataJSON = {}
 
@@ -137,7 +137,7 @@ export default class PotDb {
     return data
   }
 
-  async loadJSON(data: IDbDataJSON) {
+  async loadJSON (data: IDbDataJSON) {
     // dict
     if (data.dict) {
       for (let name of Object.keys(data.dict)) {

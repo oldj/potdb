@@ -30,14 +30,14 @@ export default class IO {
   private _is_dir_ensured: boolean = false
   private _dump_status: number = 0 // 0: 不需要 dump; 1: 等待或正在 dump
 
-  constructor(options: IIOOptions) {
+  constructor (options: IIOOptions) {
     this.options = { ...options }
     this.data_path = options.data_path
     this.data_type = options.data_type
     this._dump_delay = options.dump_delay
   }
 
-  private async load_file(fn: string) {
+  private async load_file (fn: string) {
     let d: any
     try {
       let content: string = await fs.promises.readFile(fn, 'utf-8')
@@ -49,7 +49,7 @@ export default class IO {
     return d
   }
 
-  private async load_dict(): Promise<DataTypeDict> {
+  private async load_dict (): Promise<DataTypeDict> {
     let data: DataTypeDict = {}
 
     if (!fs.existsSync(this.data_path)) {
@@ -65,7 +65,7 @@ export default class IO {
     return data
   }
 
-  private async load_list(): Promise<DataTypeList> {
+  private async load_list (): Promise<DataTypeList> {
     let data: DataTypeList = []
 
     if (!fs.existsSync(this.data_path)) {
@@ -80,7 +80,7 @@ export default class IO {
     return data
   }
 
-  private async load_set(): Promise<DataTypeSet> {
+  private async load_set (): Promise<DataTypeSet> {
     let data: DataTypeSet = new Set()
 
     if (!fs.existsSync(this.data_path)) {
@@ -95,7 +95,7 @@ export default class IO {
     return data
   }
 
-  async load<T>(): Promise<T> {
+  async load<T> (): Promise<T> {
     let data: any
 
     if (!this._is_dir_ensured) {
@@ -119,7 +119,7 @@ export default class IO {
     return data
   }
 
-  private async dump_file(data: any, fn: string) {
+  private async dump_file (data: any, fn: string) {
     if (this.data_type === 'set') {
       data = Array.from(data)
     }
@@ -138,7 +138,7 @@ export default class IO {
     }
   }
 
-  async dump(data: any) {
+  async dump (data: any) {
     this._dump_status = 1
     clearTimeout(this._t_dump)
 
@@ -156,11 +156,11 @@ export default class IO {
     this._dump_status = 0
   }
 
-  getDumpStatus() {
+  getDumpStatus () {
     return this._dump_status
   }
 
-  async remove() {
+  async remove () {
     let fn = this.data_path
     if (!fn || !fs.existsSync(fn)) return
 
