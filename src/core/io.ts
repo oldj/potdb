@@ -98,6 +98,14 @@ export default class IO {
   async load<T> (): Promise<T> {
     let data: any
 
+    let t0 = (new Date()).getTime()
+    while (this.getDumpStatus() > 0) {
+      // 正在 dump，等待一会儿
+      let t1 = (new Date()).getTime()
+      if (t1 - t0 > 3000) break
+      await wait(Math.floor(Math.random() * 50) + 10)
+    }
+
     if (!this._is_dir_ensured) {
       let dir_path = path.dirname(this.data_path)
       await ensureDir(dir_path)
