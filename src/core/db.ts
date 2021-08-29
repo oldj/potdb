@@ -32,6 +32,10 @@ export default class PotDb {
     // if (!fs.existsSync(path) || !fs.statSync(path).isDirectory()) {
     //   throw new Error(`'${path}' is not a directory.`)
     // }
+    const debug = options?.debug || false
+    if (debug) {
+      console.log(`[potdb] open potdb: "${root_dir}"`)
+    }
 
     this.dir = root_dir
     this.options = { ...this.getDefaultOptions(), ...options }

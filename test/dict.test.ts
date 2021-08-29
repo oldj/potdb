@@ -10,7 +10,7 @@ import * as path from 'path'
 import PotDb from '../src'
 import settings from '../src/settings'
 
-describe('dict test', function () {
+describe('dict test', function() {
   this.timeout(settings.io_dump_delay * 2 + 2000)
 
   const tmp_dir = path.join(__dirname, 'tmp')
@@ -95,4 +95,11 @@ describe('dict test', function () {
     let a = await db2.dict.remove_test.get('a')
     assert(!a)
   })
+
+  // it.only('tmp test', async () => {
+  //   const db = new PotDb(db_path, { debug })
+  //   db.dict.cc.set('a', 1)
+  //   db.dict.cc.get('a').then(v => console.log(v))
+  //   // assert(await db.dict.cc.get('a') === 1)
+  // })
 })

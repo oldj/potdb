@@ -28,7 +28,7 @@ export default class IO {
   private _last_dump_ts: number = 0
   private _t_dump: any
   private _is_dir_ensured: boolean = false
-  private _dump_status: number = 0 // 0: 不需要 dump; 1: 等待或正在 dump
+  private rw_status: 'r' | 'w' | null = null // 读写状态
 
   constructor (options: IIOOptions) {
     this.options = { ...options }
@@ -37,13 +37,44 @@ export default class IO {
     this._dump_delay = options.dump_delay
   }
 
+  private async waitWhileRW (max_wait_ms = 5000) {
+    let t0 = (new Date()).getTime()
+    while (this.rw_status) {
+      await wait(Math.floor(Math.random() * 50) + 10)
+
+      let t1 = (new Date()).getTime()
+      if (t1 - t0 > max_wait_ms) break
+    }
+  }
+
   private async load_file (fn: string) {
+    await this.waitWhileRW()
+
     let d: any
+    let content: string = 'N/A'
+
+    this.rw_status = 'r'
+
     try {
-      let content: string = await fs.promises.readFile(fn, 'utf-8')
+      if (this.options.debug) {
+        console.log(`[potdb] io.load_file start: -> ${fn}`)
+      }
+
+      content = await fs.promises.readFile(fn, 'utf-8')
       d = JSON.parse(content)
     } catch (e) {
       console.error(e)
+      console.log(`fn: ${fn}`)
+      console.log('---')
+      console.log(content)
+      console.log('---')
+    } finally {
+      await wait(50)
+      this.rw_status = null
+
+      if (this.options.debug) {
+        console.log(`[potdb] io.load_file end: -> ${fn}`)
+      }
     }
 
     return d
@@ -98,14 +129,6 @@ export default class IO {
   async load<T> (): Promise<T> {
     let data: any
 
-    let t0 = (new Date()).getTime()
-    while (this.getDumpStatus() > 0) {
-      // 正在 dump，等待一会儿
-      let t1 = (new Date()).getTime()
-      if (t1 - t0 > 3000) break
-      await wait(Math.floor(Math.random() * 50) + 10)
-    }
-
     if (!this._is_dir_ensured) {
       let dir_path = path.dirname(this.data_path)
       await ensureDir(dir_path)
@@ -128,26 +151,38 @@ export default class IO {
   }
 
   private async dump_file (data: any, fn: string) {
+    await this.waitWhileRW()
+
     if (this.data_type === 'set') {
       data = Array.from(data)
     }
+
+    this.rw_status = 'w'
 
     try {
       let out = this.options.formative ?
         JSON.stringify(data, null, 2) :
         JSON.stringify(data)
+
+      if (this.options.debug) {
+        console.log(`[potdb] io.dump_file start: -> ${fn}`)
+      }
+
       await ensureDir(path.dirname(fn))
       await fs.promises.writeFile(fn, out, 'utf-8')
-      if (this.options.debug) {
-        console.log(`io.dump_file: -> ${fn}`)
-      }
     } catch (e) {
       console.error(e)
+    } finally {
+      await wait(50)
+      this.rw_status = null
+
+      if (this.options.debug) {
+        console.log(`[potdb] io.dump_file end: -> ${fn}`)
+      }
     }
   }
 
   async dump (data: any) {
-    this._dump_status = 1
     clearTimeout(this._t_dump)
 
     let ts = (new Date()).getTime()
@@ -160,12 +195,6 @@ export default class IO {
     this._last_dump_ts = ts
 
     await this.dump_file(data, this.data_path)
-    await wait(50)
-    this._dump_status = 0
-  }
-
-  getDumpStatus () {
-    return this._dump_status
   }
 
   async remove () {
