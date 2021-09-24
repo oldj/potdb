@@ -18,7 +18,7 @@ interface ITestDoc1 {
   content: string;
 }
 
-describe('collection test', function () {
+describe('collection test', function() {
   this.timeout(30 * 1e3)
 
   const tmp_dir = path.join(__dirname, 'tmp')
@@ -52,7 +52,7 @@ describe('collection test', function () {
     assert(Array.isArray(records) && records.length === 2)
     assert(records[0]._id === '1')
 
-    records = await db.collection.test.all([ 'title' ])
+    records = await db.collection.test.all(['title'])
     assert(Array.isArray(records) && records.length === 2)
     assert(!records[0]._id && !records[1]._id)
     assert(records[0].title === 'Test')
@@ -72,13 +72,13 @@ describe('collection test', function () {
     let doc3 = await db.collection.test.find<ITestDoc1>(i => !!doc2 && i._id === doc2._id)
     assert(doc3 && doc3.title === 'ttt2')
 
-    doc = await db.collection.test.find<ITestDoc1>(i => i._id === '1', [ '_id' ])
+    doc = await db.collection.test.find<ITestDoc1>(i => i._id === '1', ['_id'])
     assert(doc && !doc.title)
 
     let docs = await db.collection.test.filter<ITestDoc1>(i => i._id === '1')
     assert(Array.isArray(docs) && docs.length === 1 && docs[0].title === 'ttt2')
 
-    docs = await db.collection.test.filter<ITestDoc1>(i => i._id === '1', [ 'title' ])
+    docs = await db.collection.test.filter<ITestDoc1>(i => i._id === '1', ['title'])
     assert(Array.isArray(docs) && docs.length === 1 && docs[0].title === 'ttt2')
     assert(!docs[0]._id && !docs[0].content)
 
@@ -102,5 +102,66 @@ describe('collection test', function () {
     assert((await db.collection.rm_test_1.count()) === 3)
     d = await db.collection.rm_test_1.index(2)
     assert(d && d.a === 4)
+  })
+
+  it('index test 1', async () => {
+    const db = new PotDb(path.join(db_path, '1'), { debug })
+
+    await db.collection.tt.addIndex('id')
+    await db.collection.tt.insert({ id: 'aa1', a: 1 })
+    await db.collection.tt.insert({ id: 'aa2', a: 22 })
+    let indexes = await db.collection.tt.getIndexes()
+
+    let d = await db.collection.tt.find<any>(['id', 'aa2'])
+    assert(await d.a === 22)
+    await db.collection.tt.addIndex('id')
+    d = await db.collection.tt.find<any>(['id', 'aa3'])
+    assert(d === undefined)
+
+    await db.collection.tt.all()
+    indexes = await db.collection.tt.getIndexes()
+
+    let data = await db.toJSON()
+
+    const db2 = new PotDb(path.join(db_path, '2'), { debug })
+    await db2.loadJSON(data)
+    await db2.collection.tt.addIndex('id')
+    indexes = await db2.collection.tt.getIndexes()
+    let all = await db2.collection.tt.all()
+    indexes = await db2.collection.tt.getIndexes()
+
+    await db2.collection.tt.addIndex('id')
+    d = await db2.collection.tt.find<any>(['id', 'aa1'])
+    assert(await d.a === 1)
+    d = await db2.collection.tt.find<any>(['id', 'aa2'])
+    assert(await d.a === 22)
+    d = await db2.collection.tt.find<any>(['id', 'aa3'])
+    assert(d === undefined)
+  })
+
+  it('index test 2', async () => {
+    const db = new PotDb(db_path, { debug })
+
+    await db.collection.tt.remove()
+    await db.collection.tt.addIndex('type')
+    await db.collection.tt.insert({ type: 'a', a: 1 })
+    await db.collection.tt.insert({ type: 'a', a: 22 })
+    await db.collection.tt.insert({ type: 'b', a: 23 })
+    await db.collection.tt.insert({ type: 'b', a: 24 })
+    await db.collection.tt.insert({ type: 'b', a: 25 })
+    await db.collection.tt.insert({ type: 'c', a: 29 })
+
+    let items = await db.collection.tt.filter<any>(['type', 'a'])
+    assert(items.length === 2)
+    items.sort((a, b) => a.a - b.a)
+    assert(await items[0].a === 1)
+    assert(await items[1].a === 22)
+
+    items = await db.collection.tt.filter<any>(['type', 'b'])
+    assert(items.length === 3)
+    items.sort((a, b) => a.a - b.a)
+    assert(await items[0].a === 23)
+    assert(await items[1].a === 24)
+    assert(await items[2].a === 25)
   })
 })

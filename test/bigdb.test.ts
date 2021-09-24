@@ -4,12 +4,17 @@
  */
 
 import assert = require('assert')
+import fs from 'fs'
 import path from 'path'
 import PotDb from '../src'
 // import PotDb from '../build'
 
-describe.skip('bigdb test', () => {
+describe('bigdb test', () => {
   const db_path = path.join(__dirname, '../../../tmp/writer/db')
+  if (!fs.existsSync(db_path)) {
+    return
+  }
+
   let db: PotDb
 
   beforeEach(() => {
@@ -33,6 +38,22 @@ describe.skip('bigdb test', () => {
     let id = '275bd2d8-f874-47f0-8cff-6288315c2fd1'
     await timer('get item', async () => {
       let item = await db.collection.items.find<any>((i) => i.id === id)
+      return item?.id
+    })
+  })
+
+  it('simple index', async () => {
+    let id = '275bd2d8-f874-47f0-8cff-6288315c2fd1'
+    db.collection.items.addIndex('id')
+    await timer('count items', async () => (await db.collection.items.all()).length)
+    await timer('get item', async () => {
+      let item = await db.collection.items.find<any>((i) => i.id === id)
+      return item?.id
+    })
+    // console.log(await db.collection.items.getIndexes())
+    await timer('get item by index', async () => {
+      let item = await db.collection.items.find<any>(['id', id])
+      // console.log(item)
       return item?.id
     })
   })
