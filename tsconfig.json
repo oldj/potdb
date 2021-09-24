@@ -9,6 +9,7 @@
     "sourceMap": true,
     "baseUrl": "./",
     "strict": true,
+    "noImplicitAny": true,
     "paths": {
       "@/*": [
         "src/*"
