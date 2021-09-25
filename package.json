@@ -1,6 +1,6 @@
 {
   "name": "potdb",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "a simple text based database for node.js",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -21,8 +21,7 @@
   },
   "homepage": "https://github.com/oldj/potdb#readme",
   "dependencies": {
-    "lodash": "^4.17.21",
-    "mkdirp": "^1.0.4"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@babel/core": "^7.15.0",

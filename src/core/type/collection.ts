@@ -92,6 +92,7 @@ export default class Collection {
     return index.toString()
   }
 
+  @clone
   async getIndexes(): Promise<{ [key: string]: IIndex }> {
     return await this._simple_indexes.all()
   }

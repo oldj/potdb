@@ -9,6 +9,7 @@ import settings from '@/settings'
 import { assert } from 'chai'
 import fs from 'fs'
 import path from 'path'
+import { removeDir } from '../src/utils/fs2'
 import PotDb from '../src'
 
 // import PotDb from '../build'
@@ -188,5 +189,33 @@ describe('collection test', function () {
 
     let item = await db.collection.tt.find(['type', 'b'])
     assert.equal(item, undefined)
+  })
+
+  it('dump with index', async () => {
+    let dir = db_path
+    await removeDir(dir)
+    const db = new PotDb(dir, { debug })
+
+    await db.collection.tt.addIndex('id')
+    await db.collection.tt.insert({ id: 'aa1', a: 1 })
+    await db.collection.tt.insert({ id: 'aa2', a: 22 })
+
+    let data = await db.toJSON()
+    assert.equal(data.collection?.tt.index_keys?.join(''), 'id')
+
+    dir = path.join(db_path, '203')
+    await removeDir(dir)
+    const db2 = new PotDb(dir, { debug })
+    let indexes = await db2.collection.tt.getIndexes()
+    // console.log(indexes)
+    assert.isFalse('id' in indexes)
+    assert.equal(Object.keys(indexes).length, 0)
+
+    await db2.loadJSON(data)
+    indexes = await db2.collection.tt.getIndexes()
+    // console.log(indexes)
+    assert.isTrue('id' in indexes)
+    assert.equal(indexes.id.aa1.join(''), '1')
+    assert.equal(indexes.id.aa2.join(''), '2')
   })
 })

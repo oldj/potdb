@@ -45,6 +45,7 @@ export interface ICollectionsDumpJSON {
       [key: string]: any
     }
     data: DataTypeDocument[]
+    index_keys?: string[]
   }
 }
 
