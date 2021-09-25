@@ -306,7 +306,7 @@ export default class Collection {
     return list
   }
 
-  async update<T>(predicate: FilterPredicate, data: Partial<T>): Promise<T[]> {
+  async update<T>(predicate: FilterPredicate | FilterByIndex, data: Partial<T>): Promise<T[]> {
     let items = await this.filter<DataTypeDocument>(predicate)
     let out: T[] = []
 
