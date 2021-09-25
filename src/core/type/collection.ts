@@ -17,13 +17,11 @@ import List from './list'
 type FilterByIndex = [string, any]
 type FilterPredicate = (item: any) => boolean
 
-interface IIndex<T> {
+interface IIndex {
   [val: string]: string[]
 }
 
-interface Options {
-
-}
+interface Options {}
 
 export default class Collection {
   name: string
@@ -35,9 +33,9 @@ export default class Collection {
   private _ids: List
   private _docs: { [key: string]: Dict } = {}
   // 静态索引，对应的值不会变化，比如 id 值
-  private _simple_indexes: { [key: string]: IIndex<any> } = {}
+  private _simple_indexes: Dict
 
-  constructor (db: PotDb, name: string) {
+  constructor(db: PotDb, name: string) {
     this._db = db
     this.name = name
     this._path = path.join(db.dir, 'collection', name)
@@ -45,26 +43,36 @@ export default class Collection {
 
     this._meta = new Dict('meta', this._path, db.options)
     this._ids = new List('ids', this._path, db.options)
+    this._simple_indexes = new Dict('indexes', this._path, db.options)
   }
 
-  updateConfig (options: Partial<Options>) {
+  updateConfig(options: Partial<Options>) {
     this.options = {
       ...this.options,
       ...options,
     }
   }
 
-  addIndex (key: string) {
-    if (!(key in this._simple_indexes)) {
-      this._simple_indexes[key] = {}
+  async addIndex(key: string) {
+    await this.getOrAddIndex(key)
+    // await this.rebuildIndexes()
+  }
+
+  async removeIndex(key: string) {
+    await this._simple_indexes.delete(key)
+  }
+
+  private async getOrAddIndex(key: string): Promise<IIndex> {
+    let index: IIndex | undefined = await this._simple_indexes.get(key)
+    if (!index || typeof index !== 'object') {
+      index = {}
+      await this._simple_indexes.set(key, index)
     }
+
+    return index
   }
 
-  removeIndex (key: string) {
-    delete this._simple_indexes[key]
-  }
-
-  private async makeId (): Promise<string> {
+  private async makeId(): Promise<string> {
     let index = asInt(await this._meta.get('index'), 0)
     if (index < 0) index = 0
     index++
@@ -76,17 +84,18 @@ export default class Collection {
     return index.toString()
   }
 
-  async getIndexes () {
-    return this._simple_indexes
+  async getIndexes() {
+    return await this._simple_indexes.all()
   }
 
-  private async ensureDocIndex (doc: Dict) {
+  private async ensureDocIndex(doc: Dict) {
     let d: any = await doc.all()
     let _id = d._id
+    let keys = await this._simple_indexes.keys()
 
-    for (let index_key in this._simple_indexes) {
+    for (let index_key of keys) {
       let val: string = (d[index_key] || '').toString()
-      let index = this._simple_indexes[index_key]
+      let index = await this.getOrAddIndex(index_key)
       let _ids = index[val]
       if (!_ids) {
         _ids = []
@@ -96,27 +105,58 @@ export default class Collection {
       if (!_ids.includes(_id)) {
         _ids.push(_id)
       }
+      await this._simple_indexes.update({ [index_key]: index })
     }
   }
 
-  private clearIndexes () {
-    for (let index_key in this._simple_indexes) {
-      this._simple_indexes[index_key] = {}
+  private async clearIndexes() {
+    let keys = await this._simple_indexes.keys()
+    for (let index_key of keys) {
+      await this._simple_indexes.update({ [index_key]: {} })
     }
   }
 
-  async rebuildIndexes () {
+  async rebuildIndexes() {
     // 根据最新的数据，重建所有索引
-    this.clearIndexes()
-    await Promise.all((await this._ids.all()).map(async _id => {
-      let d = await this.getDoc(_id)
-      await this.ensureDocIndex(d)
-    }))
+    // await this.clearIndexes()
+    let _ids = await this._ids.all()
+    let keys = await this._simple_indexes.keys()
+    // for (let _id of _ids) {
+    //   let d = await this.getDoc(_id)
+    //   await this.ensureDocIndex(d)
+    // }
+
+    let indexes: { [key: string]: IIndex } = {}
+    for (let key of keys) {
+      indexes[key] = {}
+    }
+
+    await Promise.all(
+      _ids.map(async (_id) => {
+        let d: DataTypeDocument = await (await this.getDoc(_id)).all()
+        for (let index_key of keys) {
+          let val: string = (d[index_key] || '').toString()
+          let index = indexes[index_key]
+          let _ids = index[val]
+          if (!_ids) {
+            _ids = []
+            index[val] = _ids
+          }
+
+          if (!_ids.includes(_id)) {
+            _ids.push(_id)
+          }
+        }
+      }),
+    )
+
+    await this._simple_indexes.update(indexes)
   }
 
-  private removeDocIndex (_id: string) {
-    for (let index_key in this._simple_indexes) {
-      let index = this._simple_indexes[index_key]
+  private async removeDocIndex(_id: string) {
+    let keys = await this._simple_indexes.keys()
+    for (let index_key of keys) {
+      let index = await this.getOrAddIndex(index_key)
       for (let val_key in index) {
         let arr = index[val_key]
         while (true) {
@@ -128,26 +168,23 @@ export default class Collection {
           }
         }
       }
+      await this._simple_indexes.update({ [index_key]: index })
     }
   }
 
-  private async getDoc (_id: string): Promise<Dict> {
+  private async getDoc(_id: string): Promise<Dict> {
     if (!this._docs[_id]) {
       this._docs[_id] = new Dict(_id, this._path_data, this._db.options)
     }
 
-    let doc = this._docs[_id]
-    // console.log('getDoc', _id)
-    // await this.ensureDocIndex(doc)
-
-    return doc
+    return this._docs[_id]
   }
 
-  async count (): Promise<number> {
+  async count(): Promise<number> {
     return (await this._ids.all()).length
   }
 
-  async insert<T> (doc: T): Promise<T & { _id: string }> {
+  async insert<T>(doc: T): Promise<T & { _id: string }> {
     let _id = await this.makeId()
     let doc2 = { ...doc, _id }
     await this._insert(doc2)
@@ -159,7 +196,7 @@ export default class Collection {
    * 如果不存在 _id 参数，或者 _id 对应的文档不存在，则新建
    * 这个方法一般用在 db.loadJSON() 等场景
    */
-  async _insert (doc: DataTypeDocument) {
+  async _insert(doc: DataTypeDocument) {
     let _id = doc._id
     await this._ids.push(_id)
     let d = await this.getDoc(_id)
@@ -167,32 +204,38 @@ export default class Collection {
     await this.ensureDocIndex(d)
   }
 
-  async all<T> (keys: string | string[] = '*'): Promise<T[]> {
-    let data = await Promise.all((await this._ids.all()).map(async _id => {
-      let d = await this.getDoc(_id)
-      let doc: T = await d.toJSON<T>()
+  async all<T>(keys: string | string[] = '*'): Promise<T[]> {
+    let _ids = await this._ids.all()
+    let data = await Promise.all(
+      _ids.map(async (_id) => {
+        let d = await this.getDoc(_id)
+        let doc: T = await d.toJSON<T>()
 
-      if (Array.isArray(keys)) {
-        doc = lodash.pick(doc, keys) as T
-      }
+        if (Array.isArray(keys)) {
+          doc = lodash.pick(doc, keys) as T
+        }
 
-      return doc
-    }))
+        return doc
+      }),
+    )
 
     return data as T[]
   }
 
-  async index<T> (index: number, keys: string | string[] = '*'): Promise<T | undefined> {
+  async index<T>(index: number, keys: string | string[] = '*'): Promise<T | undefined> {
     let _id = await this._ids.index(index)
     if (!_id) return
 
-    return await this.find<T>(i => i._id === _id, keys)
+    return await this.find<T>((i) => i._id === _id, keys)
   }
 
-  async find<T> (predicate: FilterPredicate | FilterByIndex, keys: string | string[] = '*'): Promise<T | undefined> {
+  async find<T>(
+    predicate: FilterPredicate | FilterByIndex,
+    keys: string | string[] = '*',
+  ): Promise<T | undefined> {
     if (Array.isArray(predicate)) {
       let [key, value] = predicate
-      let index = this._simple_indexes[key] || {}
+      let index = (await this._simple_indexes.get<IIndex>(key)) || {}
       let _ids = index[value] || []
       let _id = _ids[0]
       if (!_id) return
@@ -224,13 +267,16 @@ export default class Collection {
     }
   }
 
-  async filter<T> (predicate: FilterPredicate | FilterByIndex, keys: string | string[] = '*'): Promise<T[]> {
+  async filter<T>(
+    predicate: FilterPredicate | FilterByIndex,
+    keys: string | string[] = '*',
+  ): Promise<T[]> {
     let _ids = await this._ids.all()
     let list: T[] = []
 
     if (Array.isArray(predicate)) {
       let [key, value] = predicate
-      let index = this._simple_indexes[key] || {}
+      let index = (await this._simple_indexes.get<IIndex>(key)) || {}
       let _ids = index[value] || []
 
       for (let _id of _ids) {
@@ -257,7 +303,7 @@ export default class Collection {
     return list
   }
 
-  async update<T> (predicate: FilterPredicate, data: Partial<T>): Promise<T[]> {
+  async update<T>(predicate: FilterPredicate, data: Partial<T>): Promise<T[]> {
     let items = await this.filter<DataTypeDocument>(predicate)
     let out: T[] = []
 
@@ -279,7 +325,7 @@ export default class Collection {
     return out
   }
 
-  async delete (predicate: FilterPredicate | FilterByIndex) {
+  async delete(predicate: FilterPredicate | FilterByIndex) {
     while (true) {
       let item = await this.find<DataTypeDocument>(predicate)
       if (!item) break
@@ -296,24 +342,24 @@ export default class Collection {
     }
   }
 
-  async remove () {
+  async remove() {
     // remove current collection
     await this._meta.remove()
     await this._ids.remove()
+    await this._simple_indexes.remove()
     this._docs = {}
-    this._simple_indexes = {}
     if (fs.existsSync(this._path)) {
       await fs.promises.rm(this._path, { recursive: true })
     }
   }
 
   @clone
-  async _getMeta () {
+  async _getMeta() {
     return await this._meta.all<DataTypeDocument>()
   }
 
   @clone
-  async _setMeta (data: any) {
+  async _setMeta(data: any) {
     let keys = Object.keys(data)
     for (let k of keys) {
       await this._meta.set(k, data[k])

@@ -9,8 +9,7 @@ import { DataTypeList, IBasicOptions } from '../../typings'
 import { clone } from '../../utils/clone'
 import IO from '../io'
 
-interface Options extends IBasicOptions {
-}
+interface Options extends IBasicOptions {}
 
 type FilterPredicate = (item: any) => boolean
 type MapFunction = (item: any) => any

@@ -13,8 +13,7 @@ import Dict from './type/dict'
 import List from './type/list'
 import PotSet from './type/set'
 
-interface IDBOptions extends IBasicOptions {
-}
+interface IDBOptions extends IBasicOptions {}
 
 export default class PotDb {
   dir: string
