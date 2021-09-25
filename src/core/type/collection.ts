@@ -18,9 +18,7 @@ type FilterByIndex = [string, any]
 type FilterPredicate = (item: any) => boolean
 
 interface IIndex<T> {
-  [key: string]: {
-    [_id: string]: T
-  }
+  [val: string]: string[]
 }
 
 interface Options {
@@ -82,23 +80,53 @@ export default class Collection {
     return this._simple_indexes
   }
 
-  private async ensureIndex (doc: Dict) {
+  private async ensureDocIndex (doc: Dict) {
+    let d: any = await doc.all()
+    let _id = d._id
+
     for (let index_key in this._simple_indexes) {
-      let d: any = await doc.all()
-      let doc_key: string = (d[index_key] || '').toString()
+      let val: string = (d[index_key] || '').toString()
       let index = this._simple_indexes[index_key]
-      if (!index[doc_key]) {
-        index[doc_key] = {}
+      let _ids = index[val]
+      if (!_ids) {
+        _ids = []
+        index[val] = _ids
       }
-      index[doc_key][d['_id'] || ''] = doc
+
+      if (!_ids.includes(_id)) {
+        _ids.push(_id)
+      }
     }
+  }
+
+  private clearIndexes () {
+    for (let index_key in this._simple_indexes) {
+      this._simple_indexes[index_key] = {}
+    }
+  }
+
+  async rebuildIndexes () {
+    // 根据最新的数据，重建所有索引
+    this.clearIndexes()
+    await Promise.all((await this._ids.all()).map(async _id => {
+      let d = await this.getDoc(_id)
+      await this.ensureDocIndex(d)
+    }))
   }
 
   private removeDocIndex (_id: string) {
     for (let index_key in this._simple_indexes) {
       let index = this._simple_indexes[index_key]
-      for (let doc_key in index) {
-        delete index[doc_key][_id]
+      for (let val_key in index) {
+        let arr = index[val_key]
+        while (true) {
+          let idx = arr.indexOf(_id)
+          if (idx > -1) {
+            arr.splice(idx, 1)
+          } else {
+            break
+          }
+        }
       }
     }
   }
@@ -109,7 +137,8 @@ export default class Collection {
     }
 
     let doc = this._docs[_id]
-    await this.ensureIndex(doc)
+    // console.log('getDoc', _id)
+    // await this.ensureDocIndex(doc)
 
     return doc
   }
@@ -135,7 +164,7 @@ export default class Collection {
     await this._ids.push(_id)
     let d = await this.getDoc(_id)
     await d.update(doc)
-    await this.ensureIndex(d)
+    await this.ensureDocIndex(d)
   }
 
   async all<T> (keys: string | string[] = '*'): Promise<T[]> {
@@ -164,10 +193,11 @@ export default class Collection {
     if (Array.isArray(predicate)) {
       let [key, value] = predicate
       let index = this._simple_indexes[key] || {}
-      let dict = index[value] || {}
-      let list = Object.values(dict)
+      let _ids = index[value] || []
+      let _id = _ids[0]
+      if (!_id) return
 
-      let d = list[0] as Dict
+      let d = await this.getDoc(_id)
       if (!d) return
       let doc: T = await d.toJSON<T>()
 
@@ -201,11 +231,11 @@ export default class Collection {
     if (Array.isArray(predicate)) {
       let [key, value] = predicate
       let index = this._simple_indexes[key] || {}
-      let dict = index[value] || {}
-      let items = Object.values(dict)
+      let _ids = index[value] || []
 
-      for (let item of items) {
-        list.push(await item.toJSON())
+      for (let _id of _ids) {
+        let doc = await this.getDoc(_id)
+        list.push(await doc.toJSON())
       }
 
       return list
@@ -249,18 +279,20 @@ export default class Collection {
     return out
   }
 
-  async delete (predicate: FilterPredicate) {
+  async delete (predicate: FilterPredicate | FilterByIndex) {
     while (true) {
       let item = await this.find<DataTypeDocument>(predicate)
       if (!item) break
 
-      let index = await this._ids.indexOf(item._id)
+      let _id = item._id
+      let index = await this._ids.indexOf(_id)
       if (index === -1) continue
 
       await this._ids.splice(index, 1)
-      let d = await this.getDoc(item._id)
+      let d = await this.getDoc(_id)
       await d.remove()
-      delete this._docs[item._id]
+      delete this._docs[_id]
+      this.removeDocIndex(_id)
     }
   }
 

@@ -111,6 +111,7 @@ describe('collection test', function() {
     await db.collection.tt.insert({ id: 'aa1', a: 1 })
     await db.collection.tt.insert({ id: 'aa2', a: 22 })
     let indexes = await db.collection.tt.getIndexes()
+    // console.log(indexes)
 
     let d = await db.collection.tt.find<any>(['id', 'aa2'])
     assert(await d.a === 22)
@@ -127,8 +128,11 @@ describe('collection test', function() {
     await db2.loadJSON(data)
     await db2.collection.tt.addIndex('id')
     indexes = await db2.collection.tt.getIndexes()
-    let all = await db2.collection.tt.all()
+    // console.log(indexes)
+    // let all = await db2.collection.tt.all()
+    await db2.collection.tt.rebuildIndexes()
     indexes = await db2.collection.tt.getIndexes()
+    // console.log(indexes)
 
     await db2.collection.tt.addIndex('id')
     d = await db2.collection.tt.find<any>(['id', 'aa1'])
