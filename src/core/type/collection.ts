@@ -58,8 +58,16 @@ export default class Collection {
     // await this.rebuildIndexes()
   }
 
-  async removeIndex(key: string) {
-    await this._simple_indexes.delete(key)
+  async removeIndex(key: string, value?: string) {
+    if (typeof value === 'undefined') {
+      await this._simple_indexes.delete(key)
+    } else {
+      let index = await this._simple_indexes.get<IIndex>(key)
+      if (index) {
+        delete index[value]
+        await this._simple_indexes.update({ [key]: index })
+      }
+    }
   }
 
   private async getOrAddIndex(key: string): Promise<IIndex> {
@@ -84,7 +92,7 @@ export default class Collection {
     return index.toString()
   }
 
-  async getIndexes() {
+  async getIndexes(): Promise<{ [key: string]: IIndex }> {
     return await this._simple_indexes.all()
   }
 
@@ -121,11 +129,6 @@ export default class Collection {
     // await this.clearIndexes()
     let _ids = await this._ids.all()
     let keys = await this._simple_indexes.keys()
-    // for (let _id of _ids) {
-    //   let d = await this.getDoc(_id)
-    //   await this.ensureDocIndex(d)
-    // }
-
     let indexes: { [key: string]: IIndex } = {}
     for (let key of keys) {
       indexes[key] = {}
@@ -326,11 +329,8 @@ export default class Collection {
   }
 
   async delete(predicate: FilterPredicate | FilterByIndex) {
-    while (true) {
-      let item = await this.find<DataTypeDocument>(predicate)
-      if (!item) break
-
-      let _id = item._id
+    let items = await this.filter<DataTypeDocument>(predicate)
+    for (let { _id } of items) {
       let index = await this._ids.indexOf(_id)
       if (index === -1) continue
 
@@ -338,7 +338,11 @@ export default class Collection {
       let d = await this.getDoc(_id)
       await d.remove()
       delete this._docs[_id]
-      this.removeDocIndex(_id)
+      await this.removeDocIndex(_id)
+    }
+
+    if (Array.isArray(predicate)) {
+      await this.removeIndex(...predicate)
     }
   }
 

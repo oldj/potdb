@@ -4,8 +4,9 @@
  * @homepage: https://oldj.net
  */
 
-import assert = require('assert')
 import settings from '@/settings'
+// import assert = require('assert')
+import { assert } from 'chai'
 import fs from 'fs'
 import path from 'path'
 import PotDb from '../src'
@@ -59,7 +60,11 @@ describe('collection test', function () {
     assert(!records[0].content)
 
     let doc = await db.collection.test.find<ITestDoc1>((i) => i._id === '1')
-    assert(doc && doc.title === 'Test')
+    assert.notEqual(doc, undefined)
+    if (!doc) {
+      throw new Error('doc is undefined')
+    }
+    assert(doc.title === 'Test')
 
     doc.title = 'ttt'
     let doc2 = await db.collection.test.find<ITestDoc1>((i) => i._id === '1')
@@ -167,5 +172,21 @@ describe('collection test', function () {
     assert((await items[0].a) === 23)
     assert((await items[1].a) === 24)
     assert((await items[2].a) === 25)
+
+    items = await db.collection.tt.all()
+    assert.equal(items.length, 6)
+    await db.collection.tt.delete(['type', 'b'])
+    items = await db.collection.tt.all()
+    assert.equal(items.length, 3)
+
+    let indexes = await db.collection.tt.getIndexes()
+    // console.log(indexes)
+    assert.equal(typeof indexes['type'], 'object')
+    assert.isTrue('a' in indexes['type'])
+    assert.isFalse('b' in indexes['type'])
+    assert.isTrue('c' in indexes['type'])
+
+    let item = await db.collection.tt.find(['type', 'b'])
+    assert.equal(item, undefined)
   })
 })
