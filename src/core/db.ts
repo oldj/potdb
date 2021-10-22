@@ -13,8 +13,7 @@ import Dict from './type/dict'
 import List from './type/list'
 import PotSet from './type/set'
 
-interface IDBOptions extends IBasicOptions {
-}
+interface IDBOptions extends IBasicOptions {}
 
 export default class PotDb {
   dir: string
@@ -28,7 +27,7 @@ export default class PotDb {
   private _set: { [key: string]: PotSet } = {}
   private _collection: { [key: string]: Collection } = {}
 
-  constructor (root_dir: string, options?: Partial<IDBOptions>) {
+  constructor(root_dir: string, options?: Partial<IDBOptions>) {
     // if (!fs.existsSync(path) || !fs.statSync(path).isDirectory()) {
     //   throw new Error(`'${path}' is not a directory.`)
     // }
@@ -40,52 +39,64 @@ export default class PotDb {
     this.dir = root_dir
     this.options = { ...this.getDefaultOptions(), ...options }
 
-    this.dict = new Proxy({}, {
-      get: (target: {}, key: PropertyKey, receiver: any): Dict => {
-        let name: string = key.toString()
-        if (!this._dict.hasOwnProperty(name)) {
-          this._dict[name] = new Dict(name, path.join(this.dir, 'dict'), this.options)
-        }
+    this.dict = new Proxy(
+      {},
+      {
+        get: (target: {}, key: PropertyKey, receiver: any): Dict => {
+          let name: string = key.toString()
+          if (!this._dict.hasOwnProperty(name)) {
+            this._dict[name] = new Dict(name, path.join(this.dir, 'dict'), this.options)
+          }
 
-        return this._dict[name]
+          return this._dict[name]
+        },
       },
-    })
+    )
 
-    this.list = new Proxy({}, {
-      get: (target: {}, key: PropertyKey, receiver: any): List => {
-        let name: string = key.toString()
-        if (!this._list.hasOwnProperty(name)) {
-          this._list[name] = new List(name, path.join(this.dir, 'list'), this.options)
-        }
+    this.list = new Proxy(
+      {},
+      {
+        get: (target: {}, key: PropertyKey, receiver: any): List => {
+          let name: string = key.toString()
+          if (!this._list.hasOwnProperty(name)) {
+            this._list[name] = new List(name, path.join(this.dir, 'list'), this.options)
+          }
 
-        return this._list[name]
+          return this._list[name]
+        },
       },
-    })
+    )
 
-    this.set = new Proxy({}, {
-      get: (target: {}, key: PropertyKey, receiver: any): PotSet => {
-        let name: string = key.toString()
-        if (!this._set.hasOwnProperty(name)) {
-          this._set[name] = new PotSet(name, path.join(this.dir, 'set'), this.options)
-        }
+    this.set = new Proxy(
+      {},
+      {
+        get: (target: {}, key: PropertyKey, receiver: any): PotSet => {
+          let name: string = key.toString()
+          if (!this._set.hasOwnProperty(name)) {
+            this._set[name] = new PotSet(name, path.join(this.dir, 'set'), this.options)
+          }
 
-        return this._set[name]
+          return this._set[name]
+        },
       },
-    })
+    )
 
-    this.collection = new Proxy({}, {
-      get: (target: {}, key: PropertyKey, receiver: any): Collection => {
-        let name: string = key.toString()
-        if (!this._collection.hasOwnProperty(name)) {
-          this._collection[name] = new Collection(this, name)
-        }
+    this.collection = new Proxy(
+      {},
+      {
+        get: (target: {}, key: PropertyKey, receiver: any): Collection => {
+          let name: string = key.toString()
+          if (!this._collection.hasOwnProperty(name)) {
+            this._collection[name] = new Collection(this, name)
+          }
 
-        return this._collection[name]
+          return this._collection[name]
+        },
       },
-    })
+    )
   }
 
-  private getDefaultOptions (): IDBOptions {
+  private getDefaultOptions(): IDBOptions {
     const options: IDBOptions = {
       debug: false,
       dump_delay: settings.io_dump_delay,
@@ -95,11 +106,11 @@ export default class PotDb {
     return options
   }
 
-  async keys (): Promise<IKeys> {
+  async keys(): Promise<IKeys> {
     return await getKeys(this.dir)
   }
 
-  async toJSON (): Promise<IDbDataJSON> {
+  async toJSON(): Promise<IDbDataJSON> {
     let keys = await this.keys()
     let data: IDbDataJSON = {}
 
@@ -134,6 +145,7 @@ export default class PotDb {
         data.collection[name] = {
           meta: await this.collection[name]._getMeta(),
           data: await this.collection[name].all<DataTypeDocument>(),
+          index_keys: Object.keys(await this.collection[name].getIndexes()),
         }
       }
     }
@@ -141,7 +153,7 @@ export default class PotDb {
     return data
   }
 
-  async loadJSON (data: IDbDataJSON) {
+  async loadJSON(data: IDbDataJSON) {
     // dict
     if (data.dict) {
       for (let name of Object.keys(data.dict)) {
@@ -167,6 +179,13 @@ export default class PotDb {
     if (data.collection) {
       for (let name of Object.keys(data.collection)) {
         await this.collection[name].remove()
+        let index_keys = data.collection[name].index_keys
+        if (Array.isArray(index_keys)) {
+          for (let key of index_keys) {
+            await this.collection[name].addIndex(key)
+          }
+        }
+
         for (let doc of data.collection[name].data) {
           await this.collection[name]._insert(doc)
         }

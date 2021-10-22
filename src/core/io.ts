@@ -13,41 +13,41 @@ import wait from '../utils/wait'
 type DataType = 'dict' | 'list' | 'set' | 'collection'
 
 interface IIOOptions {
-  debug?: boolean;
-  data_path: string;
-  data_type: DataType;
-  dump_delay: number;
-  formative?: boolean;
+  debug?: boolean
+  data_path: string
+  data_type: DataType
+  dump_delay: number
+  formative?: boolean
 }
 
 export default class IO {
   private options: IIOOptions
-  private data_path: string
-  private data_type: DataType
-  private _dump_delay: number// dump 节流间隔，单位为 ms
+  private readonly data_path: string
+  private readonly data_type: DataType
+  private readonly _dump_delay: number // dump 节流间隔，单位为 ms
   private _last_dump_ts: number = 0
   private _t_dump: any
   private _is_dir_ensured: boolean = false
   private rw_status: 'r' | 'w' | null = null // 读写状态
 
-  constructor (options: IIOOptions) {
+  constructor(options: IIOOptions) {
     this.options = { ...options }
     this.data_path = options.data_path
     this.data_type = options.data_type
     this._dump_delay = options.dump_delay
   }
 
-  private async waitWhileRW (max_wait_ms = 5000) {
-    let t0 = (new Date()).getTime()
+  private async waitWhileRW(max_wait_ms = 5000) {
+    let t0 = new Date().getTime()
     while (this.rw_status) {
       await wait(Math.floor(Math.random() * 50) + 10)
 
-      let t1 = (new Date()).getTime()
+      let t1 = new Date().getTime()
       if (t1 - t0 > max_wait_ms) break
     }
   }
 
-  private async load_file (fn: string) {
+  private async load_file(fn: string) {
     await this.waitWhileRW()
 
     let d: any
@@ -80,7 +80,7 @@ export default class IO {
     return d
   }
 
-  private async load_dict (): Promise<DataTypeDict> {
+  private async load_dict(): Promise<DataTypeDict> {
     let data: DataTypeDict = {}
 
     if (!fs.existsSync(this.data_path)) {
@@ -96,7 +96,7 @@ export default class IO {
     return data
   }
 
-  private async load_list (): Promise<DataTypeList> {
+  private async load_list(): Promise<DataTypeList> {
     let data: DataTypeList = []
 
     if (!fs.existsSync(this.data_path)) {
@@ -111,7 +111,7 @@ export default class IO {
     return data
   }
 
-  private async load_set (): Promise<DataTypeSet> {
+  private async load_set(): Promise<DataTypeSet> {
     let data: DataTypeSet = new Set()
 
     if (!fs.existsSync(this.data_path)) {
@@ -120,13 +120,13 @@ export default class IO {
 
     let d: any = await this.load_file(this.data_path)
     if (Array.isArray(d)) {
-      d.map(v => data.add(v))
+      d.map((v) => data.add(v))
     }
 
     return data
   }
 
-  async load<T> (): Promise<T> {
+  async load<T>(): Promise<T> {
     let data: any
 
     if (!this._is_dir_ensured) {
@@ -150,7 +150,7 @@ export default class IO {
     return data
   }
 
-  private async dump_file (data: any, fn: string) {
+  private async dump_file(data: any, fn: string) {
     await this.waitWhileRW()
 
     if (this.data_type === 'set') {
@@ -160,9 +160,7 @@ export default class IO {
     this.rw_status = 'w'
 
     try {
-      let out = this.options.formative ?
-        JSON.stringify(data, null, 2) :
-        JSON.stringify(data)
+      let out = this.options.formative ? JSON.stringify(data, null, 2) : JSON.stringify(data)
 
       if (this.options.debug) {
         console.log(`[potdb] io.dump_file start: -> ${fn}`)
@@ -182,10 +180,10 @@ export default class IO {
     }
   }
 
-  async dump (data: any) {
+  async dump(data: any) {
     clearTimeout(this._t_dump)
 
-    let ts = (new Date()).getTime()
+    let ts = new Date().getTime()
 
     if (ts - this._last_dump_ts < this._dump_delay) {
       this._t_dump = setTimeout(() => this.dump(data), this._dump_delay)
@@ -197,7 +195,7 @@ export default class IO {
     await this.dump_file(data, this.data_path)
   }
 
-  async remove () {
+  async remove() {
     let fn = this.data_path
     if (!fn || !fs.existsSync(fn)) return
 

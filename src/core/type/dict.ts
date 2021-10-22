@@ -9,8 +9,7 @@ import { DataTypeDict, IBasicOptions } from '../../typings'
 import { clone } from '../../utils/clone'
 import IO from '../io'
 
-interface Options extends IBasicOptions {
-}
+interface Options extends IBasicOptions {}
 
 export default class Dict {
   private _data: DataTypeDict | null = null

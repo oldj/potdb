@@ -9,10 +9,10 @@ import * as path from 'path'
 import { isDir, isFile } from '../utils/fs2'
 
 export interface IKeys {
-  dict: string[];
-  list: string[];
-  set: string[];
-  collection: string[];
+  dict: string[]
+  list: string[]
+  set: string[]
+  collection: string[]
 }
 
 const byFile = (dir: string, filenames: string[], ext: string = '.json'): string[] => {
