@@ -26,7 +26,7 @@ describe('bigdb test', () => {
     let t0 = new Date().getTime()
     let r = await fn()
     let t1 = new Date().getTime()
-    console.log(`time [${name}]: ${t1 - t0}ms, output: ${r}`)
+    // console.log(`time [${name}]: ${t1 - t0}ms, output: ${r}`)
     return r
   }
 

@@ -26,8 +26,8 @@ interface Options {}
 export default class Collection {
   name: string
   private _db: PotDb
-  private readonly _path: string
-  private readonly _path_data: string
+  private readonly _path: string | null
+  private readonly _path_data: string | null
   private options: Options = {}
   private _meta: Dict
   private _ids: List
@@ -38,8 +38,8 @@ export default class Collection {
   constructor(db: PotDb, name: string) {
     this._db = db
     this.name = name
-    this._path = path.join(db.dir, 'collection', name)
-    this._path_data = path.join(this._path, 'data')
+    this._path = db.dir ? path.join(db.dir, 'collection', name) : null
+    this._path_data = this._path ? path.join(this._path, 'data') : null
 
     this._meta = new Dict('meta', this._path, db.options)
     this._ids = new List('ids', this._path, db.options)
@@ -353,7 +353,7 @@ export default class Collection {
     await this._ids.remove()
     await this._simple_indexes.remove()
     this._docs = {}
-    if (fs.existsSync(this._path)) {
+    if (this._path && fs.existsSync(this._path)) {
       await fs.promises.rm(this._path, { recursive: true })
     }
   }

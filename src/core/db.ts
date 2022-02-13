@@ -16,7 +16,7 @@ import PotSet from './type/set'
 interface IDBOptions extends IBasicOptions {}
 
 export default class PotDb {
-  dir: string
+  dir: string | null // null means in-memory db
   options: IDBOptions
   dict: { [key: string]: Dict }
   list: { [key: string]: List }
@@ -45,7 +45,11 @@ export default class PotDb {
         get: (target: {}, key: PropertyKey, receiver: any): Dict => {
           let name: string = key.toString()
           if (!this._dict.hasOwnProperty(name)) {
-            this._dict[name] = new Dict(name, path.join(this.dir, 'dict'), this.options)
+            this._dict[name] = new Dict(
+              name,
+              this.dir ? path.join(this.dir, 'dict') : null,
+              this.options,
+            )
           }
 
           return this._dict[name]
@@ -59,7 +63,11 @@ export default class PotDb {
         get: (target: {}, key: PropertyKey, receiver: any): List => {
           let name: string = key.toString()
           if (!this._list.hasOwnProperty(name)) {
-            this._list[name] = new List(name, path.join(this.dir, 'list'), this.options)
+            this._list[name] = new List(
+              name,
+              this.dir ? path.join(this.dir, 'list') : null,
+              this.options,
+            )
           }
 
           return this._list[name]
@@ -73,7 +81,11 @@ export default class PotDb {
         get: (target: {}, key: PropertyKey, receiver: any): PotSet => {
           let name: string = key.toString()
           if (!this._set.hasOwnProperty(name)) {
-            this._set[name] = new PotSet(name, path.join(this.dir, 'set'), this.options)
+            this._set[name] = new PotSet(
+              name,
+              this.dir ? path.join(this.dir, 'set') : null,
+              this.options,
+            )
           }
 
           return this._set[name]
@@ -107,7 +119,7 @@ export default class PotDb {
   }
 
   async keys(): Promise<IKeys> {
-    return await getKeys(this.dir)
+    return await getKeys(this)
   }
 
   async toJSON(): Promise<IDbDataJSON> {

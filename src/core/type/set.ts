@@ -13,76 +13,83 @@ interface Options extends IBasicOptions {}
 
 export default class PotSet {
   private _data: DataTypeSet | null = null
-  private _io: IO
-  private _path: string
+  private _path: string | null
+  private _io: IO | null
   name: string
 
-  constructor (name: string, root_dir: string, options: Options) {
-    this._path = path.join(root_dir, name + '.json')
+  constructor(name: string, root_dir: string | null, options: Options) {
+    this._path = root_dir ? path.join(root_dir, name + '.json') : null
     this.name = name
-    this._io = new IO({
-      data_type: 'set',
-      data_path: this._path,
-      debug: options.debug,
-      dump_delay: options.dump_delay,
-    })
+    this._io = this._path
+      ? new IO({
+          data_type: 'set',
+          data_path: this._path,
+          debug: options.debug,
+          dump_delay: options.dump_delay,
+        })
+      : null
   }
 
-  private async ensure (): Promise<DataTypeSet> {
+  private async ensure(): Promise<DataTypeSet> {
     if (this._data === null) {
-      this._data = await this._io.load<DataTypeSet>()
+      if (this._io) {
+        this._data = await this._io.load<DataTypeSet>()
+      } else {
+        this._data = new Set() as DataTypeSet
+      }
     }
 
     return this._data
   }
 
-  private dump () {
-    if (this._data === null) return
-    this._io.dump(Array.from(this._data))
-      .catch(e => console.error(e))
+  private dump() {
+    if (this._data === null || !this._io) return
+    this._io.dump(Array.from(this._data)).catch((e) => console.error(e))
   }
 
-  async add (value: DataTypeSetItem) {
+  async add(value: DataTypeSetItem) {
     this._data = await this.ensure()
     this._data.add(value)
     this.dump()
   }
 
-  async delete (value: DataTypeSetItem) {
+  async delete(value: DataTypeSetItem) {
     this._data = await this.ensure()
     this._data.delete(value)
     this.dump()
   }
 
-  async has (value: DataTypeSetItem): Promise<boolean> {
+  async has(value: DataTypeSetItem): Promise<boolean> {
     this._data = await this.ensure()
     return this._data.has(value)
   }
 
-  async all (): Promise<DataTypeSetItem[]> {
+  async all(): Promise<DataTypeSetItem[]> {
     this._data = await this.ensure()
     return Array.from(this._data)
   }
 
-  async clear () {
+  async clear() {
     this._data = new Set()
     this.dump()
   }
 
   @clone
-  async set (data: any[]) {
+  async set(data: any[]) {
     let s = new Set<DataTypeSetItem>()
-    data.map(i => s.add(i))
+    data.map((i) => s.add(i))
     this._data = s
     this.dump()
   }
 
-  async remove () {
+  async remove() {
     this._data = new Set()
-    await this._io.remove()
+    if (this._io) {
+      await this._io.remove()
+    }
   }
 
-  async update (data: DataTypeSetItem[]) {
+  async update(data: DataTypeSetItem[]) {
     this._data = new Set(data)
     this.dump()
   }
