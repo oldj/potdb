@@ -27,7 +27,7 @@ export default class PotDb {
   private _set: { [key: string]: PotSet } = {}
   private _collection: { [key: string]: Collection } = {}
 
-  constructor(root_dir: string, options?: Partial<IDBOptions>) {
+  constructor(root_dir: string | null, options?: Partial<IDBOptions>) {
     // if (!fs.existsSync(path) || !fs.statSync(path).isDirectory()) {
     //   throw new Error(`'${path}' is not a directory.`)
     // }

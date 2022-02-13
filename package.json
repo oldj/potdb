@@ -1,6 +1,6 @@
 {
   "name": "potdb",
-  "version": "2.3.0",
+  "version": "2.3.2",
   "description": "a simple text based database for node.js",
   "main": "build/index.js",
   "types": "build/index.d.ts",
