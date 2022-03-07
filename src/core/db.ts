@@ -16,7 +16,7 @@ import PotSet from './type/set'
 interface IDBOptions extends IBasicOptions {}
 
 export default class PotDb {
-  dir: string | null // null means in-memory db
+  dir: string | null | undefined // null or undefined means in-memory db
   options: IDBOptions
   dict: { [key: string]: Dict }
   list: { [key: string]: List }
@@ -27,7 +27,7 @@ export default class PotDb {
   private _set: { [key: string]: PotSet } = {}
   private _collection: { [key: string]: Collection } = {}
 
-  constructor(root_dir: string | null, options?: Partial<IDBOptions>) {
+  constructor(root_dir?: string | null, options?: Partial<IDBOptions>) {
     // if (!fs.existsSync(path) || !fs.statSync(path).isDirectory()) {
     //   throw new Error(`'${path}' is not a directory.`)
     // }
@@ -54,6 +54,15 @@ export default class PotDb {
 
           return this._dict[name]
         },
+        ownKeys: (target) => {
+          return Object.keys(this._dict)
+        },
+        getOwnPropertyDescriptor(target, prop) {
+          return {
+            enumerable: true,
+            configurable: true,
+          }
+        },
       },
     )
 
@@ -71,6 +80,15 @@ export default class PotDb {
           }
 
           return this._list[name]
+        },
+        ownKeys: (target) => {
+          return Object.keys(this._list)
+        },
+        getOwnPropertyDescriptor(target, prop) {
+          return {
+            enumerable: true,
+            configurable: true,
+          }
         },
       },
     )
@@ -90,6 +108,15 @@ export default class PotDb {
 
           return this._set[name]
         },
+        ownKeys: (target) => {
+          return Object.keys(this._set)
+        },
+        getOwnPropertyDescriptor(target, prop) {
+          return {
+            enumerable: true,
+            configurable: true,
+          }
+        },
       },
     )
 
@@ -103,6 +130,15 @@ export default class PotDb {
           }
 
           return this._collection[name]
+        },
+        ownKeys: (target) => {
+          return Object.keys(this._collection)
+        },
+        getOwnPropertyDescriptor(target, prop) {
+          return {
+            enumerable: true,
+            configurable: true,
+          }
         },
       },
     )
