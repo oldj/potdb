@@ -4,6 +4,7 @@
  * @homepage: https://oldj.net
  */
 
+import lodash from 'lodash'
 import * as path from 'path'
 import settings from '../settings'
 import { DataTypeDocument, IBasicOptions, IDbDataJSON } from '../typings'
@@ -26,6 +27,7 @@ export default class PotDb {
   private _list: { [key: string]: List } = {}
   private _set: { [key: string]: PotSet } = {}
   private _collection: { [key: string]: Collection } = {}
+  private _is_loading: boolean = false
 
   constructor(root_dir?: string | null, options?: Partial<IDBOptions>) {
     // if (!fs.existsSync(path) || !fs.statSync(path).isDirectory()) {
@@ -46,6 +48,7 @@ export default class PotDb {
           let name: string = key.toString()
           if (!this._dict.hasOwnProperty(name)) {
             this._dict[name] = new Dict(
+              this,
               name,
               this.dir ? path.join(this.dir, 'dict') : null,
               this.options,
@@ -73,6 +76,7 @@ export default class PotDb {
           let name: string = key.toString()
           if (!this._list.hasOwnProperty(name)) {
             this._list[name] = new List(
+              this,
               name,
               this.dir ? path.join(this.dir, 'list') : null,
               this.options,
@@ -100,6 +104,7 @@ export default class PotDb {
           let name: string = key.toString()
           if (!this._set.hasOwnProperty(name)) {
             this._set[name] = new PotSet(
+              this,
               name,
               this.dir ? path.join(this.dir, 'set') : null,
               this.options,
@@ -202,6 +207,10 @@ export default class PotDb {
   }
 
   async loadJSON(data: IDbDataJSON) {
+    this._is_loading = true
+
+    data = lodash.cloneDeep(data)
+
     // dict
     if (data.dict) {
       for (let name of Object.keys(data.dict)) {
@@ -242,5 +251,11 @@ export default class PotDb {
         }
       }
     }
+
+    this._is_loading = false
+  }
+
+  isLoading(): boolean {
+    return this._is_loading
   }
 }

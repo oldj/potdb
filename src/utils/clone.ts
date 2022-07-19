@@ -8,14 +8,18 @@ import lodash from 'lodash'
 
 export const clone = (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
   const method = descriptor.value
-  descriptor.value = async function(...args: any[]) {
+  descriptor.value = async function (...args: any[]) {
+    // @ts-ignore
+    let is_loading = this.isLoading()
     let result = await method.apply(
       this,
-      args.map((i) => {
-        return i && typeof i === 'object' ? lodash.cloneDeep(i) : i
-      }),
+      is_loading
+        ? args
+        : args.map((i) => {
+            return i && typeof i === 'object' ? lodash.cloneDeep(i) : i
+          }),
     )
-    if (result && typeof result === 'object') {
+    if (!is_loading && result && typeof result === 'object') {
       result = lodash.cloneDeep(result)
     }
 

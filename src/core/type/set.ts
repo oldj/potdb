@@ -7,17 +7,20 @@
 import * as path from 'path'
 import { DataTypeSet, DataTypeSetItem, IBasicOptions } from '../../typings'
 import { clone } from '../../utils/clone'
+import PotDb from '../db'
 import IO from '../io'
 
 interface Options extends IBasicOptions {}
 
 export default class PotSet {
+  private _db: PotDb
   private _data: DataTypeSet | null = null
   private _path: string | null
   private _io: IO | null
   name: string
 
-  constructor(name: string, root_dir: string | null, options: Options) {
+  constructor(db: PotDb, name: string, root_dir: string | null, options: Options) {
+    this._db = db
     this._path = root_dir ? path.join(root_dir, name + '.json') : null
     this.name = name
     this._io = this._path
@@ -92,5 +95,9 @@ export default class PotSet {
   async update(data: DataTypeSetItem[]) {
     this._data = new Set(data)
     this.dump()
+  }
+
+  isLoading(): boolean {
+    return this._db.isLoading()
   }
 }

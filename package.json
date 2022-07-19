@@ -1,6 +1,6 @@
 {
   "name": "potdb",
-  "version": "2.3.3",
+  "version": "2.4.0",
   "description": "a simple text based database for node.js",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -8,6 +8,7 @@
     "build:0": "cross-env NODE_ENV=production webpack --config scripts/webpack.main.prod.config.js",
     "build": "cross-env NODE_ENV=production tsc -P tsconfig.json && tscpaths -p tsconfig.json -s src -o build",
     "test": "rm -rf ./test/tmp/* && ts-mocha --paths test/**/*.test.ts",
+    "local": "ts-node local/run.ts",
     "p": "npm run build && npm run test && npm publish --access public"
   },
   "repository": {

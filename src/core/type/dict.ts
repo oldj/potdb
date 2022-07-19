@@ -8,16 +8,19 @@ import * as path from 'path'
 import { DataTypeDict, IBasicOptions } from '../../typings'
 import { clone } from '../../utils/clone'
 import IO from '../io'
+import PotDb from '@/core/db'
 
 interface Options extends IBasicOptions {}
 
 export default class Dict {
+  private _db: PotDb
   private _data: DataTypeDict | null = null
   private _io: IO | null
   private _path: string | null
   name: string
 
-  constructor(name: string, dir: string | null, options: Options) {
+  constructor(db: PotDb, name: string, dir: string | null, options: Options) {
+    this._db = db
     this._path = dir ? path.join(dir, name + '.json') : null
     this.name = name
     this._io = this._path
@@ -68,9 +71,12 @@ export default class Dict {
   @clone
   async update<T>(obj: { [key: string]: any }): Promise<T> {
     this._data = await this.ensure()
-    this._data = {
-      ...this._data,
-      ...obj,
+    // this._data = {
+    //   ...this._data,
+    //   ...obj,
+    // }
+    for (let key in obj) {
+      this._data[key] = obj[key]
     }
     this.dump()
 
@@ -90,7 +96,7 @@ export default class Dict {
 
   @clone
   async toJSON<T>(): Promise<T> {
-    return (await this.all()) as T
+    return (await this.ensure()) as T
   }
 
   async delete(key: string) {
@@ -112,5 +118,9 @@ export default class Dict {
     if (this._io) {
       await this._io.remove()
     }
+  }
+
+  isLoading(): boolean {
+    return this._db.isLoading()
   }
 }

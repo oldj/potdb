@@ -41,9 +41,9 @@ export default class Collection {
     this._path = db.dir ? path.join(db.dir, 'collection', name) : null
     this._path_data = this._path ? path.join(this._path, 'data') : null
 
-    this._meta = new Dict('meta', this._path, db.options)
-    this._ids = new List('ids', this._path, db.options)
-    this._simple_indexes = new Dict('indexes', this._path, db.options)
+    this._meta = new Dict(db, 'meta', this._path, db.options)
+    this._ids = new List(db, 'ids', this._path, db.options)
+    this._simple_indexes = new Dict(db, 'indexes', this._path, db.options)
   }
 
   updateConfig(options: Partial<Options>) {
@@ -93,7 +93,7 @@ export default class Collection {
   }
 
   @clone
-  async getIndexes(): Promise<{ [key: string]: IIndex }> {
+  async getIndexes(): Promise<Readonly<{ [key: string]: IIndex }>> {
     return await this._simple_indexes.all()
   }
 
@@ -178,7 +178,7 @@ export default class Collection {
 
   private async getDoc(_id: string): Promise<Dict> {
     if (!this._docs[_id]) {
-      this._docs[_id] = new Dict(_id, this._path_data, this._db.options)
+      this._docs[_id] = new Dict(this._db, _id, this._path_data, this._db.options)
     }
 
     return this._docs[_id]
@@ -369,5 +369,9 @@ export default class Collection {
     for (let k of keys) {
       await this._meta.set(k, data[k])
     }
+  }
+
+  isLoading(): boolean {
+    return this._db.isLoading()
   }
 }

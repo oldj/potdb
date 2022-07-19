@@ -8,6 +8,7 @@ import * as path from 'path'
 import { DataTypeList, IBasicOptions } from '../../typings'
 import { clone } from '../../utils/clone'
 import IO from '../io'
+import PotDb from '@/core/db'
 
 interface Options extends IBasicOptions {}
 
@@ -15,12 +16,14 @@ type FilterPredicate = (item: any) => boolean
 type MapFunction = (item: any) => any
 
 export default class List {
+  private _db: PotDb
   private _data: DataTypeList | null = null
   private _path: string | null
   private _io: IO | null
   name: string
 
-  constructor(name: string, root_dir: string | null, options: Options) {
+  constructor(db: PotDb, name: string, root_dir: string | null, options: Options) {
+    this._db = db
     this._path = root_dir ? path.join(root_dir, name + '.json') : null
     this.name = name
     this._io = this._path
@@ -57,7 +60,6 @@ export default class List {
     this.dump()
   }
 
-  @clone
   async rpop(): Promise<any> {
     this._data = await this.ensure()
     let v = this._data.pop()
@@ -80,7 +82,6 @@ export default class List {
     this.dump()
   }
 
-  @clone
   async lpop(): Promise<any> {
     this._data = await this.ensure()
     let v = this._data.shift()
@@ -210,5 +211,9 @@ export default class List {
   async update(data: any[]) {
     this._data = data
     this.dump()
+  }
+
+  isLoading(): boolean {
+    return this._db.isLoading()
   }
 }

@@ -23,6 +23,7 @@
     "mock/**/*",
     "src/**/*",
     "test/**/*",
+    "local/**/*",
     "typings.d.ts"
   ],
   "exclude": [
