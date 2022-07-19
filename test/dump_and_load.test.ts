@@ -4,7 +4,7 @@
  * @homepage: https://oldj.net
  */
 
-import assert = require('assert')
+import { assert } from 'chai'
 import fs from 'fs'
 import path from 'path'
 import settings from 'src/settings'
@@ -39,7 +39,7 @@ describe('dump and load test', function () {
 
     await db.list.l1.push('l11')
     await db.list.l1.push('l12')
-    await db.list.l2.update([ 'l22', 'l23' ])
+    await db.list.l2.update(['l22', 'l23'])
 
     await db.set.s1.add('s11')
     await db.set.s1.add('s12')
@@ -75,12 +75,12 @@ describe('dump and load test', function () {
         b: { b1: 'B', b2: 'B2' },
       },
       list: {
-        a: [ 1, 2, 3 ],
-        b: [ 'a', 'b', 'c' ],
+        a: [1, 2, 3],
+        b: ['a', 'b', 'c'],
       },
       set: {
-        a: [ 1, 1, 2, 3 ],
-        b: [ 1, '2', '5' ],
+        a: [1, 1, 2, 3],
+        b: [1, '2', '5'],
       },
       collection: {
         a: {
@@ -100,10 +100,10 @@ describe('dump and load test', function () {
 
     await db.loadJSON(data)
 
-    assert(await db.dict.a.get('a1') === 1)
-    assert(await db.dict.a.get('a2') === 2)
-    assert(await db.dict.b.get('b1') === 'B')
-    assert(await db.dict.b.get('b2') === 'B2')
+    assert((await db.dict.a.get('a1')) === 1)
+    assert((await db.dict.a.get('a2')) === 2)
+    assert((await db.dict.b.get('b1')) === 'B')
+    assert((await db.dict.b.get('b2')) === 'B2')
     assert((await db.list.a.all())[0] === 1)
     assert((await db.list.a.all())[1] === 2)
     assert((await db.list.a.all())[2] === 3)

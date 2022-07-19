@@ -4,13 +4,13 @@
  * @homepage: https://oldj.net
  */
 
-import assert = require('assert')
+import { assert } from 'chai'
 import * as fs from 'fs'
 import * as path from 'path'
 import PotDb from '../src'
 import settings from '../src/settings'
 
-describe('dict test', function() {
+describe('dict test', function () {
   this.timeout(settings.io_dump_delay * 2 + 2000)
 
   const tmp_dir = path.join(__dirname, 'tmp')
@@ -38,14 +38,14 @@ describe('dict test', function() {
 
     await db.dict.abc.set('a', 1)
     // assert(await db.dict.abc.get('a') === undefined)
-    assert(await db.dict.abc.get('a') === 1)
-    assert(await db.dict['abc'].get('a') === 1)
+    assert((await db.dict.abc.get('a')) === 1)
+    assert((await db.dict['abc'].get('a')) === 1)
     await db.dict['abc'].set('a', 'AA')
-    assert(await db.dict.abc.get('a') === 'AA')
-    assert(await db.dict['abc'].get('a') === 'AA')
+    assert((await db.dict.abc.get('a')) === 'AA')
+    assert((await db.dict['abc'].get('a')) === 'AA')
 
     await db.dict.abc.set('b', 33)
-    assert(await db.dict.abc.get('b') === 33)
+    assert((await db.dict.abc.get('b')) === 33)
     assert((await db.dict.abc.keys()).join(':') === 'a:b')
 
     const db2 = new PotDb(db_path, { debug })
@@ -65,7 +65,7 @@ describe('dict test', function() {
     const db = new PotDb(db_path, { debug })
     await db.dict.persistent_test.set('a111', 111)
 
-    await new Promise(resolve => setTimeout(resolve, settings.io_dump_delay * 2))
+    await new Promise((resolve) => setTimeout(resolve, settings.io_dump_delay * 2))
 
     const db2 = new PotDb(db_path, { debug })
     assert((await db2.dict.persistent_test.get('a111')) === 111)
@@ -88,7 +88,7 @@ describe('dict test', function() {
   it('remove test', async () => {
     const db = new PotDb(db_path, { debug })
     await db.dict.remove_test.set('a', 1)
-    await new Promise(resolve => setTimeout(resolve, settings.io_dump_delay * 2))
+    await new Promise((resolve) => setTimeout(resolve, settings.io_dump_delay * 2))
     await db.dict.remove_test.remove()
 
     const db2 = new PotDb(db_path, { debug })

@@ -2,7 +2,7 @@
  * in-memory-db.test.ts
  */
 
-import assert = require('assert')
+import { assert } from 'chai'
 import PotDb from '../src'
 
 describe('bigdb test', () => {

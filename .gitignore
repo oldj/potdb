@@ -6,3 +6,5 @@ test/tmp
 *.ts.map
 
 build
+
+local

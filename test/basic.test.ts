@@ -5,7 +5,7 @@
  */
 
 // import * as assert from 'assert'
-import assert = require('assert')
+import { assert } from 'chai'
 import * as path from 'path'
 // import PotDb from '../src'
 import PotDb from '../build'
