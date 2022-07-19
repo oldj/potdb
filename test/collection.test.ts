@@ -5,13 +5,11 @@
  */
 
 import settings from '@/settings'
-// import assert = require('assert')
 import { assert } from 'chai'
 import fs from 'fs'
 import path from 'path'
 import { removeDir } from '../src/utils/fs2'
 import PotDb from '../src'
-
 // import PotDb from '../build'
 
 interface ITestDoc1 {

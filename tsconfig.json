@@ -20,10 +20,7 @@
     "declaration": true
   },
   "include": [
-    "mock/**/*",
     "src/**/*",
-    "test/**/*",
-    "local/**/*",
     "typings.d.ts"
   ],
   "exclude": [
@@ -31,6 +28,7 @@
     "lib",
     "es",
     "dist",
+    "build",
     "typings",
     "**/__test__",
     "docs"

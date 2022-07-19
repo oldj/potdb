@@ -10,6 +10,7 @@ import path from 'path'
 import settings from 'src/settings'
 import { IDbDataJSON } from 'src/typings'
 import PotDb from '../src'
+// import PotDb from '../build'
 
 describe('dump and load test', function () {
   this.timeout(settings.io_dump_delay * 2 + 2000)
