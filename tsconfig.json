@@ -13,6 +13,9 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "@core/*": [
+        "src/core/*"
       ]
     },
     "allowSyntheticDefaultImports": true,

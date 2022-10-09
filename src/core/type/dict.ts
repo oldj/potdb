@@ -69,7 +69,7 @@ export default class Dict {
   }
 
   @clone
-  async update<T>(obj: { [key: string]: any }): Promise<T> {
+  async update<T>(obj: Partial<T>): Promise<T> {
     this._data = await this.ensure()
     // this._data = {
     //   ...this._data,

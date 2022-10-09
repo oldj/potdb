@@ -115,25 +115,25 @@ export default class List {
   }
 
   @clone
-  async find(predicate: FilterPredicate): Promise<any | undefined> {
+  async find<T>(predicate: FilterPredicate): Promise<T | undefined> {
     this._data = await this.ensure()
     return this._data.find(predicate)
   }
 
   @clone
-  async filter(predicate: FilterPredicate): Promise<any[]> {
+  async filter<T>(predicate: FilterPredicate): Promise<T[]> {
     this._data = await this.ensure()
     return this._data.filter(predicate)
   }
 
   @clone
-  async map(predicate: MapFunction): Promise<any[]> {
+  async map<T>(predicate: MapFunction): Promise<T[]> {
     this._data = await this.ensure()
     return this._data.map(predicate)
   }
 
   @clone
-  async index(index: number): Promise<any | undefined> {
+  async index<T>(index: number): Promise<T | undefined> {
     this._data = await this.ensure()
 
     if (index < 0) {
@@ -165,7 +165,7 @@ export default class List {
   }
 
   @clone
-  async slice(start: number, end?: number): Promise<any[]> {
+  async slice<T>(start: number, end?: number): Promise<T[]> {
     this._data = await this.ensure()
     let args = [start]
     if (typeof end === 'number') {
@@ -175,7 +175,7 @@ export default class List {
   }
 
   @clone
-  async splice(start: number, delete_count: number, ...insert_items: any[]): Promise<any[]> {
+  async splice<T>(start: number, delete_count: number, ...insert_items: T[]): Promise<T[]> {
     this._data = await this.ensure()
     let v = this._data.splice(start, delete_count, ...insert_items)
     this.dump()
@@ -183,7 +183,7 @@ export default class List {
   }
 
   @clone
-  async delete(predicate: FilterPredicate): Promise<any[]> {
+  async delete<T>(predicate: FilterPredicate): Promise<T[]> {
     this._data = await this.filter((i) => !predicate(i))
     this.dump()
 
