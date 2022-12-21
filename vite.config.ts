@@ -17,7 +17,7 @@ export default defineConfig({
       fileName: 'index.js',
     },
     outDir: path.join(__dirname, 'build'),
-    minify: true,
+    minify: false,
     ssr: true,
     // emptyOutDir: false,
   },
