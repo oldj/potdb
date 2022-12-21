@@ -7,8 +7,8 @@
 // import * as assert from 'assert'
 import { assert } from 'chai'
 import * as path from 'path'
-import PotDb from '../src'
-// import PotDb from '../build'
+// import PotDb from '../src'
+import PotDb from '../build'
 
 describe('basic', () => {
   it('basic test', async () => {

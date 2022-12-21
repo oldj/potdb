@@ -30,7 +30,7 @@ export default defineConfig({
     tsconfigPaths(),
     dts({
       entryRoot: path.join(__dirname, 'src'),
-      outputDir: path.join(__dirname, 'build', 'types'),
+      // outputDir: path.join(__dirname, 'build', 'types'),
     }),
   ],
 })

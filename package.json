@@ -1,9 +1,9 @@
 {
   "name": "potdb",
-  "version": "2.5.1",
+  "version": "2.5.4",
   "description": "a simple text based database for node.js",
   "main": "build/index.js",
-  "types": "build/types/index.d.ts",
+  "types": "build/index.d.ts",
   "scripts": {
     "build": "cross-env NODE_ENV=production vite build --config vite.config.ts",
     "build:0": "rm -rf build && cross-env NODE_ENV=production tsc -P tsconfig.json --module commonjs --outDir build",
