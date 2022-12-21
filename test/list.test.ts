@@ -9,7 +9,7 @@ import settings from '@/settings'
 import fs from 'fs'
 import path from 'path'
 import PotDb from '../src'
-import List from '@/core/type/list'
+import List from '@core/datatype/list'
 
 describe('list test', function () {
   this.timeout(settings.io_dump_delay * 2 + 2000)
@@ -69,7 +69,7 @@ describe('list test', function () {
     assert((await a2.all()).length === 5)
     await a2.push({ x: 1, y: 2 })
     assert((await a2.all()).length === 6)
-    assert((await a2.find((item) => item.x === 1)).y === 2)
+    assert((await a2.find<any>((item) => item.x === 1)).y === 2)
     assert((await a2.filter((item) => typeof item === 'number')).length === 5)
 
     assert((await a2.slice(0, 3)).join('.') === '1.2.3')

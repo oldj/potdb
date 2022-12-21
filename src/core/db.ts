@@ -6,13 +6,13 @@
 
 import lodash from 'lodash'
 import * as path from 'path'
-import settings from '../settings'
-import { DataTypeDocument, IBasicOptions, IDbDataJSON } from '../typings'
+import settings from '@/settings'
+import { DataTypeDocument, IBasicOptions, IDbDataJSON } from '@/typings'
 import getKeys, { IKeys } from './keys'
-import Collection from './type/collection'
-import Dict from './type/dict'
-import List from './type/list'
-import PotSet from './type/set'
+import Collection from './datatype/collection'
+import Dict from './datatype/dict'
+import List from './datatype/list'
+import PotSet from './datatype/set'
 
 interface IDBOptions extends IBasicOptions {}
 

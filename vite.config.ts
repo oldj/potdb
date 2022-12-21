@@ -5,7 +5,6 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [tsconfigPaths(), dts()],
   // root: path.join(__dirname, 'src', 'main'),
   base: './',
   build: {
@@ -27,4 +26,11 @@ export default defineConfig({
       '@core': path.resolve(__dirname, 'src', 'core'),
     },
   },
+  plugins: [
+    tsconfigPaths(),
+    dts({
+      entryRoot: path.join(__dirname, 'src'),
+      outputDir: path.join(__dirname, 'build', 'types'),
+    }),
+  ],
 })

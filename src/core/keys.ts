@@ -6,7 +6,7 @@
 
 import { promises as fs } from 'fs'
 import * as path from 'path'
-import { isDir, isFile } from '../utils/fs2'
+import { isDir, isFile } from '@/utils/fs2'
 import PotDb from '@/core/db'
 
 export interface IKeys {

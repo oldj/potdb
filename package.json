@@ -1,13 +1,14 @@
 {
   "name": "potdb",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "a simple text based database for node.js",
   "main": "build/index.js",
-  "types": "build/src/index.d.ts",
+  "types": "build/types/index.d.ts",
   "scripts": {
     "build": "cross-env NODE_ENV=production vite build --config vite.config.ts",
     "build:0": "rm -rf build && cross-env NODE_ENV=production tsc -P tsconfig.json --module commonjs --outDir build",
     "test": "rm -rf ./test/tmp/* && ts-mocha --paths test/**/*.test.ts",
+    "bt": "npm run build && npm run test",
     "p": "npm run build && npm run test && npm publish --access public"
   },
   "repository": {

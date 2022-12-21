@@ -6,9 +6,9 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { DataTypeDict, DataTypeList, DataTypeSet } from '../typings'
-import { ensureDir } from '../utils/fs2'
-import wait from '../utils/wait'
+import { DataTypeDict, DataTypeList, DataTypeSet } from '@/typings'
+import { ensureDir } from '@/utils/fs2'
+import wait from '@/utils/wait'
 
 type DataType = 'dict' | 'list' | 'set' | 'collection'
 

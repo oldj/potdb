@@ -5,10 +5,10 @@
  */
 
 import * as path from 'path'
-import { DataTypeList, IBasicOptions } from '../../typings'
-import { clone } from '../../utils/clone'
-import IO from '../io'
-import PotDb from '@/core/db'
+import { DataTypeList, IBasicOptions } from '@/typings'
+import { clone } from '@/utils/clone'
+import IO from '@core/io'
+import PotDb from '@core/db'
 
 interface Options extends IBasicOptions {}
 
