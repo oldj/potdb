@@ -5,7 +5,7 @@
 import { assert } from 'chai'
 import PotDb from '../src'
 
-describe('bigdb test', () => {
+describe('in-memory-db test', () => {
   it('basic', async () => {
     const db = new PotDb()
 
