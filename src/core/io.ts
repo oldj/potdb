@@ -9,6 +9,7 @@ import * as path from 'path'
 import { DataTypeDict, DataTypeList, DataTypeSet } from '@/typings'
 import { ensureDir } from '@/utils/fs2'
 import wait from '@/utils/wait'
+import { FileHandle } from 'fs/promises'
 
 type DataType = 'dict' | 'list' | 'set' | 'collection'
 
@@ -38,29 +39,30 @@ export default class IO {
   }
 
   private async waitWhileRW(max_wait_ms = 5000) {
-    let t0 = new Date().getTime()
+    let t0 = Date.now()
     while (this.rw_status) {
       await wait(Math.floor(Math.random() * 50) + 10)
 
-      let t1 = new Date().getTime()
+      let t1 = Date.now()
       if (t1 - t0 > max_wait_ms) break
     }
   }
 
   private async load_file(fn: string) {
     await this.waitWhileRW()
+    this.rw_status = 'r'
 
     let d: any
     let content: string = 'N/A'
-
-    this.rw_status = 'r'
+    let file_handle: FileHandle | null = null
 
     try {
       if (this.options.debug) {
         console.log(`[potdb] io.load_file start: -> ${fn}`)
       }
 
-      content = await fs.promises.readFile(fn, 'utf-8')
+      file_handle = await fs.promises.open(fn, 'r')
+      content = await file_handle.readFile('utf-8')
       d = JSON.parse(content)
     } catch (e) {
       console.error(e)
@@ -69,7 +71,8 @@ export default class IO {
       console.log(content)
       console.log('---')
     } finally {
-      await wait(50)
+      await file_handle?.close()
+      // await wait(50)
       this.rw_status = null
 
       if (this.options.debug) {
@@ -152,12 +155,13 @@ export default class IO {
 
   private async dump_file(data: any, fn: string) {
     await this.waitWhileRW()
+    this.rw_status = 'w'
 
     if (this.data_type === 'set') {
       data = Array.from(data)
     }
 
-    this.rw_status = 'w'
+    let file_handle: FileHandle | null = null
 
     try {
       let out = this.options.formative ? JSON.stringify(data, null, 2) : JSON.stringify(data)
@@ -167,11 +171,13 @@ export default class IO {
       }
 
       await ensureDir(path.dirname(fn))
-      await fs.promises.writeFile(fn, out, 'utf-8')
+      file_handle = await fs.promises.open(fn, 'w')
+      await file_handle.writeFile(out, 'utf-8')
     } catch (e) {
       console.error(e)
     } finally {
-      await wait(50)
+      await file_handle?.close()
+      // await wait(50)
       this.rw_status = null
 
       if (this.options.debug) {
@@ -183,7 +189,7 @@ export default class IO {
   async dump(data: any) {
     clearTimeout(this._t_dump)
 
-    let ts = new Date().getTime()
+    let ts = Date.now()
 
     if (ts - this._last_dump_ts < this._dump_delay) {
       this._t_dump = setTimeout(() => this.dump(data), this._dump_delay)
