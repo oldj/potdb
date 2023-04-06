@@ -6,7 +6,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { DataTypeDict, DataTypeList, DataTypeSet } from '@/typings'
+import { DataTypeDict, DataTypeList, DataTypeSet } from '@/types/basic'
 import { ensureDir } from '@/utils/fs2'
 import wait from '@/utils/wait'
 import { FileHandle } from 'fs/promises'

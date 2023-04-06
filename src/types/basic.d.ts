@@ -1,5 +1,5 @@
 /**
- * typings.d.ts
+ * basic.d.ts
  * @author: oldj
  * @homepage: https://oldj.net
  */

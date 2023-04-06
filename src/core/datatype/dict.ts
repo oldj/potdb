@@ -5,7 +5,7 @@
  */
 
 import * as path from 'path'
-import { DataTypeDict, IBasicOptions } from '@/typings'
+import { DataTypeDict, IBasicOptions } from '@/types/basic'
 import { clone } from '@/utils/clone'
 import IO from '@core/io'
 import PotDb from '@core/db'

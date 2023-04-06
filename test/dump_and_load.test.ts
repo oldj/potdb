@@ -8,7 +8,7 @@ import { assert } from 'chai'
 import fs from 'fs'
 import path from 'path'
 import settings from 'src/settings'
-import { IDbDataJSON } from 'src/typings'
+import { IDbDataJSON } from 'src/types/basic'
 import PotDb from '../src'
 // import PotDb from '../build'
 

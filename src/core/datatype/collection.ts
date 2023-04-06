@@ -7,7 +7,7 @@
 import * as fs from 'fs'
 import lodash from 'lodash'
 import * as path from 'path'
-import { DataTypeDocument } from '@/typings'
+import { DataTypeDocument } from '@/types/basic'
 import { asInt } from '@/utils/asType'
 import { clone } from '@/utils/clone'
 import PotDb from '@core/db'
