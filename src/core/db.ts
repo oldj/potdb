@@ -283,4 +283,8 @@ export default class PotDb {
       listener(event)
     }
   }
+
+  hasListeners(): boolean {
+    return this._listeners.length > 0
+  }
 }
