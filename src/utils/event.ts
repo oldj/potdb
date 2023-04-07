@@ -10,7 +10,7 @@ import { DataActionType } from '@/types/event'
 
 type SetValueFunc = (obj: DataObjectType, ...args: any[]) => any
 
-export const listen = (action: DataActionType, setValue?: SetValueFunc) => {
+export const listen = (action: DataActionType, getValue?: SetValueFunc | 'result') => {
   return (target: any, property_name: string, descriptor: PropertyDescriptor) => {
     const method = descriptor.value
     descriptor.value = async function (this: DataObjectType, ...args: any[]) {
@@ -23,7 +23,7 @@ export const listen = (action: DataActionType, setValue?: SetValueFunc) => {
       const has_listeners = this.db.hasListeners()
       let value: any = null
 
-      if (has_listeners && !setValue) {
+      if (has_listeners && !getValue) {
         value = lodash.cloneDeep(new_args[0])
       }
 
@@ -37,8 +37,12 @@ export const listen = (action: DataActionType, setValue?: SetValueFunc) => {
       // 如果有监听器
       if (this.db.hasListeners()) {
         // 更新 value
-        if (setValue) {
-          value = await setValue(this, ...new_args)
+        if (getValue) {
+          if (typeof getValue === 'function') {
+            value = await getValue(this, ...new_args)
+          } else if (getValue === 'result') {
+            value = result
+          }
           value = lodash.cloneDeep(value)
         }
         // console.log(action, this.type, this.name, ...values)
