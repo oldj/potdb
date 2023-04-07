@@ -70,7 +70,7 @@ export default class Dict {
     return default_value
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   // @clone
   async set(key: string, value: any) {
     this._data = await this.ensure()
@@ -78,7 +78,7 @@ export default class Dict {
     this.dump()
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   // @clone
   async update<T>(obj: Partial<T>): Promise<T> {
     this._data = await this.ensure()
@@ -110,7 +110,7 @@ export default class Dict {
     return (await this.ensure()) as T
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   async delete(key: string) {
     this._data = await this.ensure()
     if (!this._data.hasOwnProperty(key)) {
@@ -120,7 +120,7 @@ export default class Dict {
     this.dump()
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   async clear() {
     this._data = {}
     this.dump()

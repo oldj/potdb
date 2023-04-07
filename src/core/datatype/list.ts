@@ -62,7 +62,7 @@ export default class List {
     this._io.dump([...this._data]).catch((e) => console.error(e))
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   // @clone
   async rpush(value: any) {
     this._data = await this.ensure()
@@ -70,7 +70,7 @@ export default class List {
     this.dump()
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   async rpop(): Promise<any> {
     this._data = await this.ensure()
     let v = this._data.pop()
@@ -79,7 +79,7 @@ export default class List {
     return v
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   // @clone
   async rextend(...values: any[]) {
     this._data = await this.ensure()
@@ -87,7 +87,7 @@ export default class List {
     this.dump()
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   // @clone
   async lpush(value: any) {
     this._data = await this.ensure()
@@ -95,7 +95,7 @@ export default class List {
     this.dump()
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   async lpop(): Promise<any> {
     this._data = await this.ensure()
     let v = this._data.shift()
@@ -104,7 +104,7 @@ export default class List {
     return v
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   // @clone
   async lextend(...values: any[]) {
     this._data = await this.ensure()
@@ -112,17 +112,17 @@ export default class List {
     this.dump()
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   async push(value: any) {
     await this.rpush(value)
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   async pop(): Promise<any> {
     return await this.rpop()
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   async extend(...values: any[]) {
     await this.rextend(...values)
   }
@@ -192,7 +192,7 @@ export default class List {
     return this._data.slice(...args)
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   // @clone
   async splice<T>(start: number, delete_count: number, ...insert_items: T[]): Promise<T[]> {
     this._data = await this.ensure()
@@ -201,7 +201,7 @@ export default class List {
     return v
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   // @clone
   async delete<T>(predicate: FilterPredicate): Promise<T[]> {
     this._data = await this.filter((i) => !predicate(i))
@@ -210,20 +210,20 @@ export default class List {
     return this._data
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   // @clone
   async set(data: any[]) {
     this._data = data
     this.dump()
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   async clear() {
     this._data = []
     this.dump()
   }
 
-  @listen('delete', (obj) => obj.all())
+  @listen('delete')
   async remove() {
     this._data = []
     if (this._io) {
@@ -231,7 +231,7 @@ export default class List {
     }
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   async update(data: any[]) {
     this._data = data
     this.dump()

@@ -58,14 +58,14 @@ export default class PotSet {
     this._io.dump(Array.from(this._data)).catch((e) => console.error(e))
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   async add(value: DataTypeSetItem) {
     this._data = await this.ensure()
     this._data.add(value)
     this.dump()
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   async delete(value: DataTypeSetItem) {
     this._data = await this.ensure()
     this._data.delete(value)
@@ -82,13 +82,13 @@ export default class PotSet {
     return Array.from(this._data)
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   async clear() {
     this._data = new Set()
     this.dump()
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   // @clone
   async set(data: DataTypeSetItem[]) {
     this._data = new Set(data)
@@ -103,7 +103,7 @@ export default class PotSet {
     }
   }
 
-  @listen('update', (obj) => obj.all())
+  @listen('update', 'all')
   async update(data: DataTypeSetItem[]) {
     this._data = new Set(data)
     this.dump()

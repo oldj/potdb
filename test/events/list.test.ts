@@ -321,13 +321,14 @@ describe('events.list', () => {
       await db.list.ttlist.set([1, 2, 3, 4, 5])
       assert.equal((await db.list.ttlist.all()).length, 5)
 
-      db.addListener((event) => {
+      db.addListener(async (event) => {
         try {
           // console.log(event)
           assert.equal(event.action, 'delete')
           assert.equal(event.type, 'list')
           assert.equal(event.name, 'ttlist')
-          assert.equal(event.value.length, 0)
+          let all = await db.list.ttlist.all()
+          assert.equal(all.length, 0)
         } catch (e) {
           reject(e)
           return

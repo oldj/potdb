@@ -8,9 +8,10 @@ import lodash from 'lodash'
 import { DataObjectType } from '@/types/basic'
 import { DataActionType } from '@/types/event'
 
-type SetValueFunc = (obj: DataObjectType, ...args: any[]) => any
+type GetValueFunc = (obj: DataObjectType, ...args: any[]) => any
+type GetValueType = GetValueFunc | 'all' | 'result'
 
-export const listen = (action: DataActionType, getValue?: SetValueFunc | 'result') => {
+export const listen = (action: DataActionType, getValue?: GetValueType) => {
   return (target: any, property_name: string, descriptor: PropertyDescriptor) => {
     const method = descriptor.value
     descriptor.value = async function (this: DataObjectType, ...args: any[]) {
@@ -40,6 +41,8 @@ export const listen = (action: DataActionType, getValue?: SetValueFunc | 'result
         if (getValue) {
           if (typeof getValue === 'function') {
             value = await getValue(this, ...new_args)
+          } else if (getValue === 'all') {
+            value = await this.all()
           } else if (getValue === 'result') {
             value = result
           }
