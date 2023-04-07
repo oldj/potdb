@@ -13,7 +13,7 @@ import Collection from './datatype/collection'
 import Dict from './datatype/dict'
 import List from './datatype/list'
 import PotSet from './datatype/set'
-import { DataEventListenerFunction } from '@/types/event'
+import { DataEvent, DataEventListenerFunction } from '@/types/event'
 
 interface IDBOptions extends IBasicOptions {}
 
@@ -276,5 +276,11 @@ export default class PotDb {
 
   clearListeners() {
     this._listeners = []
+  }
+
+  callListeners(event: DataEvent) {
+    for (let listener of this._listeners) {
+      listener(event)
+    }
   }
 }

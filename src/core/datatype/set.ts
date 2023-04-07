@@ -33,6 +33,14 @@ export default class PotSet {
       : null
   }
 
+  get type(): 'set' {
+    return 'set'
+  }
+
+  get db(): PotDb {
+    return this._db
+  }
+
   private async ensure(): Promise<DataTypeSet> {
     if (this._data === null) {
       if (this._io) {

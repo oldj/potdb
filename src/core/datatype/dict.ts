@@ -9,6 +9,7 @@ import { DataTypeDict, IBasicOptions } from '@/types/basic'
 import { clone } from '@/utils/clone'
 import IO from '@core/io'
 import PotDb from '@core/db'
+import { listen } from '@/utils/event'
 
 interface Options extends IBasicOptions {}
 
@@ -31,6 +32,14 @@ export default class Dict {
           dump_delay: options.dump_delay,
         })
       : null
+  }
+
+  get type(): 'dict' {
+    return 'dict'
+  }
+
+  get db(): PotDb {
+    return this._db
   }
 
   private async ensure(): Promise<DataTypeDict> {
@@ -68,7 +77,8 @@ export default class Dict {
     this.dump()
   }
 
-  @clone
+  @listen('update')
+  // @clone
   async update<T>(obj: Partial<T>): Promise<T> {
     this._data = await this.ensure()
     // this._data = {

@@ -46,6 +46,14 @@ export default class Collection {
     this._simple_indexes = new Dict(db, 'indexes', this._path, db.options)
   }
 
+  get type(): 'collection' {
+    return 'collection'
+  }
+
+  get db(): PotDb {
+    return this._db
+  }
+
   updateConfig(options: Partial<Options>) {
     this.options = {
       ...this.options,

@@ -10,24 +10,22 @@ export type DataType = 'dict' | 'list' | 'set' | 'collection'
 interface BaseEventType {
   action: DataActionType
   type: DataType
-  key: string
+  name: string
+  value: any
 }
 
 export interface AddEventType extends BaseEventType {
   action: 'add'
-  value: any
+}
+
+export interface IUpdateEvent extends BaseEventType {
+  action: 'update'
 }
 
 export interface DeleteEventType extends BaseEventType {
   action: 'delete'
 }
 
-export interface IUpdateEvent extends BaseEventType {
-  action: 'update'
-  old_value: any
-  new_value: any
-}
+export type DataEvent = AddEventType | DeleteEventType | IUpdateEvent
 
-export type DataEventListenerFunction = (
-  event: AddEventType | DeleteEventType | IUpdateEvent,
-) => void
+export type DataEventListenerFunction = (event: DataEvent) => void

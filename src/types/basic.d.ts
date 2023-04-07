@@ -4,6 +4,13 @@
  * @homepage: https://oldj.net
  */
 
+import PotSet from '@core/datatype/set'
+import List from '@core/datatype/list'
+import Dict from '@core/datatype/dict'
+import Collection from '@core/datatype/collection'
+
+export type DataObjectType = Collection | Dict | List | PotSet
+
 export interface IBasicOptions {
   debug: boolean
   dump_delay: number

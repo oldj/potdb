@@ -36,6 +36,14 @@ export default class List {
       : null
   }
 
+  get type(): 'list' {
+    return 'list'
+  }
+
+  get db(): PotDb {
+    return this._db
+  }
+
   private async ensure(): Promise<DataTypeList> {
     if (this._data === null) {
       if (this._io) {
