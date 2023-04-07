@@ -6,7 +6,7 @@
 import { assert } from 'chai'
 import fs from 'fs'
 import path from 'path'
-import PotDb from '../src'
+import PotDb from '@/index'
 // import PotDb from '../build'
 
 describe('bigdb test', () => {

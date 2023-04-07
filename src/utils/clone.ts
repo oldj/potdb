@@ -5,11 +5,11 @@
  */
 
 import lodash from 'lodash'
+import { DataObjectType } from '@/types/basic'
 
-export const clone = (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
+export const clone = (target: any, property_name: string, descriptor: PropertyDescriptor) => {
   const method = descriptor.value
-  descriptor.value = async function (...args: any[]) {
-    // @ts-ignore
+  descriptor.value = async function (this: DataObjectType, ...args: any[]) {
     let is_loading = this.isLoading()
     let result = await method.apply(
       this,

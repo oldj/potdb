@@ -7,13 +7,13 @@
 import { assert } from 'chai'
 import * as fs from 'fs'
 import * as path from 'path'
-import PotDb from '../src'
-import settings from '../src/settings'
+import PotDb from '@/index'
+import settings from '@/settings'
+import { tmp_dir } from '../cfgs'
 
 describe('dict test', function () {
   this.timeout(settings.io_dump_delay * 2 + 2000)
 
-  const tmp_dir = path.join(__dirname, 'tmp')
   const debug = false
   let db_path = path.join(tmp_dir, 'dict_test_db')
 

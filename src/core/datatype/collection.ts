@@ -7,12 +7,13 @@
 import * as fs from 'fs'
 import lodash from 'lodash'
 import * as path from 'path'
-import { DataTypeDocument } from '@/typings'
+import { DataTypeDocument } from '@/types/basic'
 import { asInt } from '@/utils/asType'
 import { clone } from '@/utils/clone'
 import PotDb from '@core/db'
 import Dict from './dict'
 import List from './list'
+import { listen } from '@/utils/event'
 
 type FilterByIndex = [string, any]
 type FilterPredicate = (item: any) => boolean
@@ -44,6 +45,14 @@ export default class Collection {
     this._meta = new Dict(db, 'meta', this._path, db.options)
     this._ids = new List(db, 'ids', this._path, db.options)
     this._simple_indexes = new Dict(db, 'indexes', this._path, db.options)
+  }
+
+  get type(): 'collection' {
+    return 'collection'
+  }
+
+  get db(): PotDb {
+    return this._db
   }
 
   updateConfig(options: Partial<Options>) {
@@ -200,12 +209,15 @@ export default class Collection {
    * 如果不存在 _id 参数，或者 _id 对应的文档不存在，则新建
    * 这个方法一般用在 db.loadJSON() 等场景
    */
+  @listen('add', 'result')
   async _insert(doc: DataTypeDocument) {
     let _id = doc._id
     await this._ids.push(_id)
     let d = await this.getDoc(_id)
-    await d.update(doc)
+    let result = await d.update(doc)
     await this.ensureDocIndex(d)
+
+    return result
   }
 
   async all<T>(keys: string | string[] = '*'): Promise<T[]> {
@@ -307,6 +319,7 @@ export default class Collection {
     return list
   }
 
+  @listen('update', 'result')
   async update<T>(predicate: FilterPredicate | FilterByIndex, data: Partial<T>): Promise<T[]> {
     let items = await this.filter<DataTypeDocument>(predicate)
     let out: T[] = []
@@ -329,8 +342,10 @@ export default class Collection {
     return out
   }
 
+  @listen('delete', 'result')
   async delete(predicate: FilterPredicate | FilterByIndex) {
     let items = await this.filter<DataTypeDocument>(predicate)
+    let deleted_ids: string[] = []
     for (let { _id } of items) {
       let index = await this._ids.indexOf(_id)
       if (index === -1) continue
@@ -338,6 +353,7 @@ export default class Collection {
       await this._ids.splice(index, 1)
       let d = await this.getDoc(_id)
       await d.remove()
+      deleted_ids.push(_id)
       delete this._docs[_id]
       await this.removeDocIndex(_id)
     }
@@ -345,8 +361,11 @@ export default class Collection {
     if (Array.isArray(predicate)) {
       await this.removeIndex(...predicate)
     }
+
+    return deleted_ids
   }
 
+  @listen('delete', () => '*')
   async remove() {
     // remove current collection
     await this._meta.remove()

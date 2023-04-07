@@ -5,10 +5,10 @@
  */
 
 import * as path from 'path'
-import { DataTypeSet, DataTypeSetItem, IBasicOptions } from '@/typings'
-import { clone } from '@/utils/clone'
+import { DataTypeSet, DataTypeSetItem, IBasicOptions } from '@/types/basic'
 import PotDb from '@core/db'
 import IO from '@core/io'
+import { listen } from '@/utils/event'
 
 interface Options extends IBasicOptions {}
 
@@ -33,6 +33,14 @@ export default class PotSet {
       : null
   }
 
+  get type(): 'set' {
+    return 'set'
+  }
+
+  get db(): PotDb {
+    return this._db
+  }
+
   private async ensure(): Promise<DataTypeSet> {
     if (this._data === null) {
       if (this._io) {
@@ -50,12 +58,14 @@ export default class PotSet {
     this._io.dump(Array.from(this._data)).catch((e) => console.error(e))
   }
 
+  @listen('update', 'all')
   async add(value: DataTypeSetItem) {
     this._data = await this.ensure()
     this._data.add(value)
     this.dump()
   }
 
+  @listen('update', 'all')
   async delete(value: DataTypeSetItem) {
     this._data = await this.ensure()
     this._data.delete(value)
@@ -72,19 +82,20 @@ export default class PotSet {
     return Array.from(this._data)
   }
 
+  @listen('update', 'all')
   async clear() {
     this._data = new Set()
     this.dump()
   }
 
-  @clone
-  async set(data: any[]) {
-    let s = new Set<DataTypeSetItem>()
-    data.map((i) => s.add(i))
-    this._data = s
+  @listen('update', 'all')
+  // @clone
+  async set(data: DataTypeSetItem[]) {
+    this._data = new Set(data)
     this.dump()
   }
 
+  @listen('delete')
   async remove() {
     this._data = new Set()
     if (this._io) {
@@ -92,6 +103,7 @@ export default class PotSet {
     }
   }
 
+  @listen('update', 'all')
   async update(data: DataTypeSetItem[]) {
     this._data = new Set(data)
     this.dump()

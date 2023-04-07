@@ -7,12 +7,13 @@
 import lodash from 'lodash'
 import * as path from 'path'
 import settings from '@/settings'
-import { DataTypeDocument, IBasicOptions, IDbDataJSON } from '@/typings'
+import { DataTypeDocument, IBasicOptions, IDbDataJSON } from '@/types/basic'
 import getKeys, { IKeys } from './keys'
 import Collection from './datatype/collection'
 import Dict from './datatype/dict'
 import List from './datatype/list'
 import PotSet from './datatype/set'
+import { DataEvent, DataEventListenerFunction } from '@/types/event'
 
 interface IDBOptions extends IBasicOptions {}
 
@@ -28,6 +29,7 @@ export default class PotDb {
   private _set: { [key: string]: PotSet } = {}
   private _collection: { [key: string]: Collection } = {}
   private _is_loading: boolean = false
+  private _listeners: DataEventListenerFunction[] = []
 
   constructor(root_dir?: string | null, options?: Partial<IDBOptions>) {
     // if (!fs.existsSync(path) || !fs.statSync(path).isDirectory()) {
@@ -257,5 +259,32 @@ export default class PotDb {
 
   isLoading(): boolean {
     return this._is_loading
+  }
+
+  addListener(listener: DataEventListenerFunction) {
+    if (this._listeners.indexOf(listener) === -1) {
+      this._listeners.push(listener)
+    }
+  }
+
+  removeListener(listener: DataEventListenerFunction) {
+    let index = this._listeners.indexOf(listener)
+    if (index !== -1) {
+      this._listeners.splice(index, 1)
+    }
+  }
+
+  clearListeners() {
+    this._listeners = []
+  }
+
+  callListeners(event: DataEvent) {
+    for (let listener of this._listeners) {
+      listener(event)
+    }
+  }
+
+  hasListeners(): boolean {
+    return this._listeners.length > 0
   }
 }

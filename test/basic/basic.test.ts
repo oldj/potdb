@@ -8,11 +8,11 @@
 import { assert } from 'chai'
 import * as path from 'path'
 // import PotDb from '../src'
-import PotDb from '../build'
+import PotDb from '../../build'
+import { db_path } from '../cfgs'
 
 describe('basic', () => {
   it('basic test', async () => {
-    const db_path = path.join(__dirname, 'tmp')
     const db = new PotDb(db_path)
     // console.log(db)
     assert(db.dir === db_path)

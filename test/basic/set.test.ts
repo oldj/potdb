@@ -8,12 +8,12 @@ import { assert } from 'chai'
 import settings from '@/settings'
 import fs from 'fs'
 import path from 'path'
-import PotDb from '../src'
+import PotDb from '@/index'
+import { tmp_dir } from '../cfgs'
 
 describe('set test', function () {
   this.timeout(settings.io_dump_delay * 2 + 2000)
 
-  const tmp_dir = path.join(__dirname, 'tmp')
   const debug = false
   let db_path = path.join(tmp_dir, 'set_test_db')
 
@@ -31,13 +31,13 @@ describe('set test', function () {
   it('basic test', async () => {
     const db = new PotDb(db_path, { debug })
 
-    assert((await db.set.abc.has('a')) === false)
+    assert(!(await db.set.abc.has('a')))
     await db.set.abc.add('a')
-    assert((await db.set.abc.has('a')) === true)
+    assert(await db.set.abc.has('a'))
     await db.set.abc.add('a')
     await db.set.abc.add('a')
     await db.set.abc.add('b')
-    assert((await db.set.abc.has('b')) === true)
+    assert(await db.set.abc.has('b'))
     let a = await db.set.abc.all()
     assert(Array.isArray(a))
     assert(a.length === 2)
@@ -46,20 +46,20 @@ describe('set test', function () {
 
     let s = db.set.abc
     await s.delete('a')
-    assert((await db.set.abc.has('a')) === false)
-    assert((await db.set.abc.has('b')) === true)
+    assert(!(await db.set.abc.has('a')))
+    assert(await db.set.abc.has('b'))
     await s.delete('b')
-    assert((await db.set.abc.has('b')) === false)
+    assert(!(await db.set.abc.has('b')))
     await s.delete('c')
-    assert((await db.set.abc.has('c')) === false)
+    assert(!(await db.set.abc.has('c')))
 
     await s.add(2)
-    assert((await db.set.abc.has(2)) === true)
+    assert(await db.set.abc.has(2))
     await s.set([3, 1, 1, 4])
-    assert((await db.set.abc.has(2)) === false)
-    assert((await db.set.abc.has(3)) === true)
-    assert((await db.set.abc.has(1)) === true)
-    assert((await db.set.abc.has(4)) === true)
+    assert(!(await db.set.abc.has(2)))
+    assert(await db.set.abc.has(3))
+    assert(await db.set.abc.has(1))
+    assert(await db.set.abc.has(4))
 
     assert((await db.keys()).set.join('.') === 'abc')
   })
