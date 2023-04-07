@@ -70,7 +70,8 @@ export default class Dict {
     return default_value
   }
 
-  @clone
+  @listen('update', (key: string, value: any) => ({ [key]: value }))
+  // @clone
   async set(key: string, value: any) {
     this._data = await this.ensure()
     this._data[key] = value
