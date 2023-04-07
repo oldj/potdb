@@ -8,8 +8,9 @@ import settings from '@/settings'
 import { assert } from 'chai'
 import fs from 'fs'
 import path from 'path'
-import { removeDir } from '../src/utils/fs2'
-import PotDb from '../src'
+import { removeDir } from '@/utils/fs2'
+import PotDb from '@/index'
+import { tmp_dir } from '../cfgs'
 // import PotDb from '../build'
 
 interface ITestDoc1 {
@@ -21,7 +22,6 @@ interface ITestDoc1 {
 describe('collection test', function () {
   this.timeout(30 * 1e3)
 
-  const tmp_dir = path.join(__dirname, 'tmp')
   const debug = false
   let db_path = path.join(tmp_dir, 'collection_test_db')
 
@@ -48,7 +48,7 @@ describe('collection test', function () {
       content: 'content 2',
     })
 
-    let records = await db.collection.test.all()
+    let records = await db.collection.test.all<ITestDoc1>()
     assert(Array.isArray(records) && records.length === 2)
     assert(records[0]._id === '1')
 

@@ -8,13 +8,13 @@ import { assert } from 'chai'
 import settings from '@/settings'
 import fs from 'fs'
 import path from 'path'
-import PotDb from '../src'
+import PotDb from '@/index'
 import List from '@core/datatype/list'
+import { tmp_dir } from '../cfgs'
 
 describe('list test', function () {
   this.timeout(settings.io_dump_delay * 2 + 2000)
 
-  const tmp_dir = path.join(__dirname, 'tmp')
   const debug = false
   let db_path = path.join(tmp_dir, 'list_test_db')
 

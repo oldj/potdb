@@ -3,7 +3,7 @@
  */
 
 import { assert } from 'chai'
-import PotDb from '../src'
+import PotDb from '@/index'
 
 describe('in-memory-db test', () => {
   it('basic', async () => {
@@ -38,7 +38,7 @@ describe('in-memory-db test', () => {
     assert((await db.list.a1.all())[1] === 2)
 
     await db.set.s1.add('x')
-    assert((await db.set.s1.has('x')) === true)
+    assert(await db.set.s1.has('x'))
 
     await db.collection.c1.insert({ id: 1, a: 'AAA' })
     assert((await db.collection.c1.find<any>((i) => i.id === 1)).a === 'AAA')

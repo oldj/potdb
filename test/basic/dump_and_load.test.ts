@@ -7,15 +7,15 @@
 import { assert } from 'chai'
 import fs from 'fs'
 import path from 'path'
-import settings from 'src/settings'
-import { IDbDataJSON } from 'src/types/basic'
-import PotDb from '../src'
+import settings from '@/settings'
+import { IDbDataJSON } from '@/types/basic'
+import PotDb from '@/index'
+import { tmp_dir } from '../cfgs'
 // import PotDb from '../build'
 
 describe('dump and load test', function () {
   this.timeout(settings.io_dump_delay * 2 + 2000)
 
-  const tmp_dir = path.join(__dirname, 'tmp')
   const debug = false
   let db_path = path.join(tmp_dir, 'dict_test_db')
 
