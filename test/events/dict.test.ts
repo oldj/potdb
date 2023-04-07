@@ -8,7 +8,7 @@ import { assert } from 'chai'
 import * as path from 'path'
 import PotDb from '@/index'
 
-describe.only('events.dict', () => {
+describe('events.dict', () => {
   const db_path = path.join(path.dirname(__dirname), 'tmp')
   const db = new PotDb(db_path)
 
