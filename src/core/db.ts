@@ -14,6 +14,7 @@ import Dict from './datatype/dict'
 import List from './datatype/list'
 import PotSet from './datatype/set'
 import { DataEvent, DataEventListenerFunction } from '@/types/event'
+import { makeEventName } from '@/utils/tools'
 
 interface IDBOptions extends IBasicOptions {}
 
@@ -30,6 +31,7 @@ export default class PotDb {
   private _collection: { [key: string]: Collection } = {}
   private _is_loading: boolean = false
   private _listeners: DataEventListenerFunction[] = []
+  private _named_listeners: Record<string, DataEventListenerFunction[]> = {}
 
   constructor(root_dir?: string | null, options?: Partial<IDBOptions>) {
     // if (!fs.existsSync(path) || !fs.statSync(path).isDirectory()) {
@@ -274,17 +276,52 @@ export default class PotDb {
     }
   }
 
+  addNamedListener(name: string, listener: DataEventListenerFunction) {
+    if (!this._named_listeners.hasOwnProperty(name)) {
+      this._named_listeners[name] = []
+    }
+
+    if (this._named_listeners[name].indexOf(listener) === -1) {
+      this._named_listeners[name].push(listener)
+    }
+  }
+
+  removeNamedListener(name: string, listener: DataEventListenerFunction) {
+    if (!this._named_listeners.hasOwnProperty(name)) {
+      return
+    }
+
+    let index = this._named_listeners[name].indexOf(listener)
+    if (index !== -1) {
+      this._named_listeners[name].splice(index, 1)
+    }
+  }
+
   clearListeners() {
     this._listeners = []
+
+    let names = Object.keys(this._named_listeners)
+    for (let name of names) {
+      delete this._named_listeners[name]
+    }
   }
 
   callListeners(event: DataEvent) {
     for (let listener of this._listeners) {
       listener(event)
     }
+
+    let names = Object.keys(this._named_listeners)
+    let event_name = makeEventName(event)
+    for (let name of names) {
+      if (name !== event_name) continue
+      for (let namedListener of this._named_listeners[name]) {
+        namedListener(event)
+      }
+    }
   }
 
   hasListeners(): boolean {
-    return this._listeners.length > 0
+    return this._listeners.length > 0 || Object.keys(this._named_listeners).length > 0
   }
 }

@@ -184,4 +184,31 @@ describe('events.collection', () => {
       await db.collection.ttcol.remove()
     })
   })
+
+  it('named listener collection.update', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let all = await db.collection.ttcol.all()
+      assert.equal(all.length, 0)
+
+      await db.collection.ttcol.insert({ a: 'AA' })
+
+      db.addNamedListener('collection.ttcol:update', (event) => {
+        if (event.type !== 'collection' || event.name !== 'ttcol') return
+
+        try {
+          assert.equal(event.action, 'update')
+          assert.isTrue(Array.isArray(event.value))
+          assert.equal(event.value[0].a, 'aa')
+          assert.equal(event.value[0].b, 'bb')
+        } catch (e) {
+          reject(e)
+          return
+        }
+
+        resolve()
+      })
+
+      await db.collection.ttcol.update((i) => i.a === 'AA', { a: 'aa', b: 'bb' })
+    })
+  })
 })
