@@ -116,7 +116,7 @@ describe('collection test', function () {
     await db1.collection.tt.addIndex('id')
     await db1.collection.tt.insert({ id: 'aa1', a: 1 })
     await db1.collection.tt.insert({ id: 'aa2', a: 22 })
-    let indexes = await db1.collection.tt.getIndexes()
+    // let indexes = await db1.collection.tt.getIndexes()
     // console.log(indexes)
 
     let d = await db1.collection.tt.find<any>(['id', 'aa2'])
@@ -126,9 +126,9 @@ describe('collection test', function () {
     assert(d === undefined)
 
     await db1.collection.tt.all()
-    indexes = await db1.collection.tt.getIndexes()
+    let indexes = await db1.collection.tt.getIndexes()
     let indexes_fn = path.join(db_path, '1', 'collection', 'tt', 'indexes.json')
-    await wait(2000) // wait for write file
+    await wait(2500) // wait for write file
     assert.deepEqual(indexes, JSON.parse(fs.readFileSync(indexes_fn, 'utf8')))
 
     let data = await db1.toJSON()
@@ -136,11 +136,11 @@ describe('collection test', function () {
     const db2 = new PotDb(path.join(db_path, '2'), { debug })
     await db2.loadJSON(data)
     await db2.collection.tt.addIndex('id')
-    indexes = await db2.collection.tt.getIndexes()
+    // indexes = await db2.collection.tt.getIndexes()
     // console.log(indexes)
     // let all = await db2.collection.tt.all()
     await db2.collection.tt.rebuildIndexes()
-    indexes = await db2.collection.tt.getIndexes()
+    // indexes = await db2.collection.tt.getIndexes()
     // console.log(indexes)
 
     await db2.collection.tt.addIndex('id')
@@ -257,13 +257,13 @@ describe('collection test', function () {
     await db.collection.tt.insert({ id: 'aa3', a: 33 })
     await db.collection.tt.addIndex('id')
 
-    await wait(2000)
+    await wait(2500)
     if (!db.dir) throw new Error('db.dir is undefined')
 
     let tt_dir = path.join(db.dir, 'collection', 'tt')
     let ids_fn = path.join(tt_dir, 'ids.json')
     let ids = JSON.parse(fs.readFileSync(ids_fn, 'utf8'))
-    assert.deepEqual(ids.sort(), ['1', '2', '3'])
+    assert.deepEqual(ids, ['1', '2', '3'])
 
     // 写入错误的 ids 值
     fs.writeFileSync(ids_fn, JSON.stringify(['1', '2']), 'utf8')
