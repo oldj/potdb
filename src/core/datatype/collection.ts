@@ -14,6 +14,8 @@ import PotDb from '@core/db'
 import Dict from './dict'
 import List from './list'
 import { listen } from '@/utils/event'
+import { getJSONFiles } from '@/utils/getJSONFiles'
+import { isDir } from '@/utils/fs2'
 
 type FilterByIndex = [string, any]
 type FilterPredicate = (item: any) => boolean
@@ -35,6 +37,7 @@ export default class Collection {
   private _docs: { [key: string]: Dict } = {}
   // 静态索引，对应的值不会变化，比如 id 值
   private _simple_indexes: Dict
+  private _is_meta_checked: boolean = false
 
   constructor(db: PotDb, name: string) {
     this._db = db
@@ -53,6 +56,22 @@ export default class Collection {
 
   get db(): PotDb {
     return this._db
+  }
+
+  async checkMeta() {
+    // 处理 meta 的编号小于实际 _id 的情况
+    if (!this._path_data || !isDir(this._path_data)) {
+      return
+    }
+    let _ids = (await getJSONFiles(this._path_data))
+      .map((fn) => Math.floor(Number(fn)))
+      .filter((n) => !isNaN(n))
+    let max_id = Math.max(..._ids)
+
+    let index = await this._meta.get<number>('index')
+    if (typeof index !== 'number' || index < max_id) {
+      await this._setMeta({ index: max_id })
+    }
   }
 
   updateConfig(options: Partial<Options>) {
@@ -90,7 +109,8 @@ export default class Collection {
   }
 
   private async makeId(): Promise<string> {
-    let index = asInt(await this._meta.get('index'), 0)
+    // let index = asInt(await this._meta.get('index'), 0)
+    let index = asInt((await this._getMeta()).index, 0)
     if (index < 0) index = 0
     index++
     await this._meta.set('index', index)
@@ -205,9 +225,8 @@ export default class Collection {
   }
 
   /**
-   * 类似 insert 方法，但不同的是如果传入的 doc 包含 _id 参数，侧会尝试更新对应的文档
+   * 如果传入的 doc 包含 _id 参数，侧会尝试更新对应的文档
    * 如果不存在 _id 参数，或者 _id 对应的文档不存在，则新建
-   * 这个方法一般用在 db.loadJSON() 等场景
    */
   @listen('add', 'result')
   async _insert(doc: DataTypeDocument) {
@@ -379,11 +398,18 @@ export default class Collection {
 
   @clone
   async _getMeta() {
+    if (!this._is_meta_checked) {
+      await this.checkMeta()
+      this._is_meta_checked = true
+    }
+
+    // console.log('_getMeta', await this._meta.all())
     return await this._meta.all<DataTypeDocument>()
   }
 
   @clone
   async _setMeta(data: any) {
+    // console.log('_setMeta', data)
     let keys = Object.keys(data)
     for (let k of keys) {
       await this._meta.set(k, data[k])

@@ -11,6 +11,9 @@ import path from 'path'
 import { removeDir } from '@/utils/fs2'
 import PotDb from '@/index'
 import { tmp_dir } from '../cfgs'
+import { getJSONFiles } from '@/utils/getJSONFiles'
+import wait from '@/utils/wait'
+
 // import PotDb from '../build'
 
 interface ITestDoc1 {
@@ -215,5 +218,29 @@ describe('collection test', function () {
     assert.isTrue('id' in indexes)
     assert.equal(indexes.id.aa1.join(''), '1')
     assert.equal(indexes.id.aa2.join(''), '2')
+  })
+
+  it.only('unmatch index', async () => {
+    let dir = db_path
+    await removeDir(dir)
+    const db = new PotDb(dir, { debug })
+
+    await db.collection.tt.insert({ id: 'aa1', a: 1 })
+    await db.collection.tt.insert({ id: 'aa2', a: 22 })
+
+    assert.equal((await db.collection.tt._getMeta()).index, 2)
+    await db.collection.tt._setMeta({ index: 1 })
+    assert.equal((await db.collection.tt._getMeta()).index, 1)
+
+    let tt_dir = path.join(dir, 'collection', 'tt')
+    assert.isTrue(fs.existsSync(tt_dir) && fs.statSync(tt_dir).isDirectory())
+    let tt_data_dir = path.join(tt_dir, 'data')
+    let fns = await getJSONFiles(tt_data_dir)
+    assert.equal(fns.length, 2)
+
+    // console.log('-----')
+    const db2 = new PotDb(dir, { debug })
+    // await db2.collection.tt.checkMeta()
+    assert.equal((await db2.collection.tt._getMeta()).index, 2)
   })
 })
