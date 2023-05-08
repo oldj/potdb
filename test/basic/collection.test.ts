@@ -11,6 +11,9 @@ import path from 'path'
 import { removeDir } from '@/utils/fs2'
 import PotDb from '@/index'
 import { tmp_dir } from '../cfgs'
+import { getJSONFiles } from '@/utils/getJSONFiles'
+import wait from '@/utils/wait'
+
 // import PotDb from '../build'
 
 interface ITestDoc1 {
@@ -24,12 +27,15 @@ describe('collection test', function () {
 
   const debug = false
   let db_path = path.join(tmp_dir, 'collection_test_db')
+  let db: PotDb
 
-  before(async () => {
+  beforeEach(async () => {
+    db = new PotDb(db_path, { debug })
     await fs.promises.mkdir(tmp_dir, { recursive: true })
   })
 
-  after(async () => {
+  afterEach(async () => {
+    await removeDir(db_path)
     // (new Promise(resolve => setTimeout(resolve, settings.io_dump_delay * 2)))
     //   .then(() => {
     //     fs.existsSync(db_path) && fs.rmdirSync(db_path, { recursive: true })
@@ -37,8 +43,6 @@ describe('collection test', function () {
   })
 
   it('basic test', async () => {
-    const db = new PotDb(db_path, { debug })
-
     await db.collection.test.insert<ITestDoc1>({
       title: 'Test',
       content: 'this is content',
@@ -90,8 +94,6 @@ describe('collection test', function () {
   })
 
   it('delete item', async () => {
-    const db = new PotDb(db_path, { debug })
-
     await db.collection.rm_test_1.insert({ a: 1 })
     await db.collection.rm_test_1.insert({ a: 2 })
     await db.collection.rm_test_1.insert({ a: 3 })
@@ -109,33 +111,36 @@ describe('collection test', function () {
   })
 
   it('index test 1', async () => {
-    const db = new PotDb(path.join(db_path, '1'), { debug })
+    const db1 = new PotDb(path.join(db_path, '1'), { debug })
 
-    await db.collection.tt.addIndex('id')
-    await db.collection.tt.insert({ id: 'aa1', a: 1 })
-    await db.collection.tt.insert({ id: 'aa2', a: 22 })
-    let indexes = await db.collection.tt.getIndexes()
+    await db1.collection.tt.addIndex('id')
+    await db1.collection.tt.insert({ id: 'aa1', a: 1 })
+    await db1.collection.tt.insert({ id: 'aa2', a: 22 })
+    // let indexes = await db1.collection.tt.getIndexes()
     // console.log(indexes)
 
-    let d = await db.collection.tt.find<any>(['id', 'aa2'])
+    let d = await db1.collection.tt.find<any>(['id', 'aa2'])
     assert((await d.a) === 22)
-    await db.collection.tt.addIndex('id')
-    d = await db.collection.tt.find<any>(['id', 'aa3'])
+    await db1.collection.tt.addIndex('id')
+    d = await db1.collection.tt.find<any>(['id', 'aa3'])
     assert(d === undefined)
 
-    await db.collection.tt.all()
-    indexes = await db.collection.tt.getIndexes()
+    await db1.collection.tt.all()
+    let indexes = await db1.collection.tt.getIndexes()
+    let indexes_fn = path.join(db_path, '1', 'collection', 'tt', 'indexes.json')
+    await wait(2500) // wait for write file
+    assert.deepEqual(indexes, JSON.parse(fs.readFileSync(indexes_fn, 'utf8')))
 
-    let data = await db.toJSON()
+    let data = await db1.toJSON()
 
     const db2 = new PotDb(path.join(db_path, '2'), { debug })
     await db2.loadJSON(data)
     await db2.collection.tt.addIndex('id')
-    indexes = await db2.collection.tt.getIndexes()
+    // indexes = await db2.collection.tt.getIndexes()
     // console.log(indexes)
     // let all = await db2.collection.tt.all()
     await db2.collection.tt.rebuildIndexes()
-    indexes = await db2.collection.tt.getIndexes()
+    // indexes = await db2.collection.tt.getIndexes()
     // console.log(indexes)
 
     await db2.collection.tt.addIndex('id')
@@ -148,8 +153,6 @@ describe('collection test', function () {
   })
 
   it('index test 2', async () => {
-    const db = new PotDb(db_path, { debug })
-
     await db.collection.tt.remove()
     await db.collection.tt.addIndex('type')
     await db.collection.tt.insert({ type: 'a', a: 1 })
@@ -190,10 +193,6 @@ describe('collection test', function () {
   })
 
   it('dump with index', async () => {
-    let dir = db_path
-    await removeDir(dir)
-    const db = new PotDb(dir, { debug })
-
     await db.collection.tt.addIndex('id')
     await db.collection.tt.insert({ id: 'aa1', a: 1 })
     await db.collection.tt.insert({ id: 'aa2', a: 22 })
@@ -201,7 +200,7 @@ describe('collection test', function () {
     let data = await db.toJSON()
     assert.equal(data.collection?.tt.index_keys?.join(''), 'id')
 
-    dir = path.join(db_path, '203')
+    let dir = path.join(db_path, '203')
     await removeDir(dir)
     const db2 = new PotDb(dir, { debug })
     let indexes = await db2.collection.tt.getIndexes()
@@ -215,5 +214,77 @@ describe('collection test', function () {
     assert.isTrue('id' in indexes)
     assert.equal(indexes.id.aa1.join(''), '1')
     assert.equal(indexes.id.aa2.join(''), '2')
+  })
+
+  it('unmatched meta index', async () => {
+    await db.collection.tt.insert({ id: 'aa1', a: 1 })
+    await db.collection.tt.insert({ id: 'aa2', a: 22 })
+
+    assert.equal((await db.collection.tt._getMeta()).index, 2)
+    await db.collection.tt._setMeta({ index: 1 })
+    assert.equal((await db.collection.tt._getMeta()).index, 1)
+
+    if (!db.dir) throw new Error('db.dir is undefined')
+    let tt_dir = path.join(db.dir, 'collection', 'tt')
+    assert.isTrue(fs.existsSync(tt_dir) && fs.statSync(tt_dir).isDirectory())
+    let tt_data_dir = path.join(tt_dir, 'data')
+    let fns = await getJSONFiles(tt_data_dir)
+    assert.equal(fns.length, 2)
+
+    // console.log('-----')
+    const db2 = new PotDb(db.dir, { debug })
+    // await db2.collection.tt.checkMeta()
+    assert.equal((await db2.collection.tt._getMeta()).index, 2)
+
+    let d = await db2.collection.tt.insert({ id: 'aa3', a: 33 })
+    assert.equal(d.a, 33)
+    assert.equal(d._id, '3')
+
+    await db2.collection.tt._setMeta({ index: 1 })
+    d = await db2.collection.tt.insert({ id: 'aa4', a: 44 })
+    assert.equal(d.a, 44)
+    assert.equal(d._id, '2')
+
+    const db3 = new PotDb(db.dir, { debug })
+    d = await db3.collection.tt.insert({ id: 'aa5', a: 55 })
+    assert.equal(d.a, 55)
+    assert.equal(d._id, '4')
+  })
+
+  it('unmatched _ids', async () => {
+    await db.collection.tt.insert({ id: 'aa1', a: 1 })
+    await db.collection.tt.insert({ id: 'aa2', a: 22 })
+    await db.collection.tt.insert({ id: 'aa3', a: 33 })
+    await db.collection.tt.addIndex('id')
+
+    await wait(2500)
+    if (!db.dir) throw new Error('db.dir is undefined')
+
+    let tt_dir = path.join(db.dir, 'collection', 'tt')
+    let ids_fn = path.join(tt_dir, 'ids.json')
+    let ids = JSON.parse(fs.readFileSync(ids_fn, 'utf8'))
+    assert.deepEqual(ids, ['1', '2', '3'])
+
+    // 写入错误的 ids 值
+    fs.writeFileSync(ids_fn, JSON.stringify(['1', '2']), 'utf8')
+
+    const db2 = new PotDb(db.dir, { debug })
+    let all = await db2.collection.tt.all()
+    assert.equal(all.length, 2)
+    assert.equal(await db2.collection.tt.count(), 2)
+    assert.equal((await db2.collection.tt.find<any>((i) => i.id === 'aa1')).a, 1)
+    assert.equal((await db2.collection.tt.find<any>((i) => i.id === 'aa2')).a, 22)
+    assert.equal(await db2.collection.tt.find<any>((i) => i.id === 'aa3'), undefined)
+
+    await db2.collection.tt.rebuildIndexes()
+    all = await db2.collection.tt.all()
+    assert.equal(all.length, 3)
+    assert.equal(await db2.collection.tt.count(), 3)
+    assert.equal((await db2.collection.tt.find<any>((i) => i.id === 'aa1')).a, 1)
+    assert.equal((await db2.collection.tt.find<any>((i) => i.id === 'aa2')).a, 22)
+    assert.equal((await db2.collection.tt.find<any>((i) => i.id === 'aa3')).a, 33)
+    assert.equal((await db2.collection.tt.find<any>(['id', 'aa1'])).a, 1)
+    assert.equal((await db2.collection.tt.find<any>(['id', 'aa2'])).a, 22)
+    assert.equal((await db2.collection.tt.find<any>(['id', 'aa3'])).a, 33)
   })
 })
