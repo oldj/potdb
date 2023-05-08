@@ -16,6 +16,7 @@ import List from './list'
 import { listen } from '@/utils/event'
 import { getJSONFiles } from '@/utils/getJSONFiles'
 import { isDir } from '@/utils/fs2'
+import { mergeIds } from '@/utils/tools'
 
 type FilterByIndex = [string, any]
 type FilterPredicate = (item: any) => boolean
@@ -58,16 +59,23 @@ export default class Collection {
     return this._db
   }
 
+  private async getIdsFromDisk(): Promise<string[]> {
+    if (!this._path_data || !isDir(this._path_data)) {
+      return []
+    }
+
+    let _ids = await getJSONFiles(this._path_data)
+    _ids = _ids.filter((fn) => !isNaN(Number(fn)))
+
+    return _ids
+  }
+
   async checkMeta() {
     // 处理 meta 的编号小于实际 _id 的情况
-    if (!this._path_data || !isDir(this._path_data)) {
-      return
-    }
-    let _ids = (await getJSONFiles(this._path_data))
-      .map((fn) => Math.floor(Number(fn)))
-      .filter((n) => !isNaN(n))
-    let max_id = Math.max(..._ids)
+    let _ids = (await this.getIdsFromDisk()).map((fn) => Math.floor(Number(fn)))
+    if (_ids.length === 0) return
 
+    let max_id = Math.max(..._ids)
     let index = await this._meta.get<number>('index')
     if (typeof index !== 'number' || index < max_id) {
       await this._setMeta({ index: max_id })
@@ -157,7 +165,13 @@ export default class Collection {
   async rebuildIndexes() {
     // 根据最新的数据，重建所有索引
     // await this.clearIndexes()
-    let _ids = await this._ids.all()
+    let _ids: string[] = await this._ids.all()
+
+    // 确保硬盘上所有的记录都在 _ids 中
+    let disk_ids = await this.getIdsFromDisk()
+    _ids = mergeIds(_ids, disk_ids)
+    await this._ids.update(_ids)
+
     let keys = await this._simple_indexes.keys()
     let indexes: { [key: string]: IIndex } = {}
     for (let key of keys) {

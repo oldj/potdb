@@ -12,6 +12,7 @@ import { removeDir } from '@/utils/fs2'
 import PotDb from '@/index'
 import { tmp_dir } from '../cfgs'
 import { getJSONFiles } from '@/utils/getJSONFiles'
+import wait from '@/utils/wait'
 
 // import PotDb from '../build'
 
@@ -21,7 +22,7 @@ interface ITestDoc1 {
   content: string
 }
 
-describe.only('collection test', function () {
+describe('collection test', function () {
   this.timeout(30 * 1e3)
 
   const debug = false
@@ -126,6 +127,9 @@ describe.only('collection test', function () {
 
     await db1.collection.tt.all()
     indexes = await db1.collection.tt.getIndexes()
+    let indexes_fn = path.join(db_path, '1', 'collection', 'tt', 'indexes.json')
+    await wait(2000) // wait for write file
+    assert.deepEqual(indexes, JSON.parse(fs.readFileSync(indexes_fn, 'utf8')))
 
     let data = await db1.toJSON()
 
@@ -247,5 +251,40 @@ describe.only('collection test', function () {
     assert.equal(d._id, '4')
   })
 
-  it('unmatched _ids', async () => {})
+  it('unmatched _ids', async () => {
+    await db.collection.tt.insert({ id: 'aa1', a: 1 })
+    await db.collection.tt.insert({ id: 'aa2', a: 22 })
+    await db.collection.tt.insert({ id: 'aa3', a: 33 })
+    await db.collection.tt.addIndex('id')
+
+    await wait(2000)
+    if (!db.dir) throw new Error('db.dir is undefined')
+
+    let tt_dir = path.join(db.dir, 'collection', 'tt')
+    let ids_fn = path.join(tt_dir, 'ids.json')
+    let ids = JSON.parse(fs.readFileSync(ids_fn, 'utf8'))
+    assert.deepEqual(ids.sort(), ['1', '2', '3'])
+
+    // 写入错误的 ids 值
+    fs.writeFileSync(ids_fn, JSON.stringify(['1', '2']), 'utf8')
+
+    const db2 = new PotDb(db.dir, { debug })
+    let all = await db2.collection.tt.all()
+    assert.equal(all.length, 2)
+    assert.equal(await db2.collection.tt.count(), 2)
+    assert.equal((await db2.collection.tt.find<any>((i) => i.id === 'aa1')).a, 1)
+    assert.equal((await db2.collection.tt.find<any>((i) => i.id === 'aa2')).a, 22)
+    assert.equal(await db2.collection.tt.find<any>((i) => i.id === 'aa3'), undefined)
+
+    await db2.collection.tt.rebuildIndexes()
+    all = await db2.collection.tt.all()
+    assert.equal(all.length, 3)
+    assert.equal(await db2.collection.tt.count(), 3)
+    assert.equal((await db2.collection.tt.find<any>((i) => i.id === 'aa1')).a, 1)
+    assert.equal((await db2.collection.tt.find<any>((i) => i.id === 'aa2')).a, 22)
+    assert.equal((await db2.collection.tt.find<any>((i) => i.id === 'aa3')).a, 33)
+    assert.equal((await db2.collection.tt.find<any>(['id', 'aa1'])).a, 1)
+    assert.equal((await db2.collection.tt.find<any>(['id', 'aa2'])).a, 22)
+    assert.equal((await db2.collection.tt.find<any>(['id', 'aa3'])).a, 33)
+  })
 })
