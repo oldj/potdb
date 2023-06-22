@@ -18,7 +18,7 @@ export interface AddEventType extends BaseEventType {
   action: 'add'
 }
 
-export interface IUpdateEvent extends BaseEventType {
+export interface UpdateEventType extends BaseEventType {
   action: 'update'
 }
 
@@ -26,6 +26,6 @@ export interface DeleteEventType extends BaseEventType {
   action: 'delete'
 }
 
-export type DataEvent = AddEventType | DeleteEventType | IUpdateEvent
+export type DataEvent = AddEventType | DeleteEventType | UpdateEventType
 
 export type DataEventListenerFunction = (event: DataEvent) => void
