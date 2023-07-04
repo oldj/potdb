@@ -36,7 +36,7 @@ export const listen = (action: DataActionType, getValue?: GetValueType) => {
       }
 
       // 如果有监听器
-      if (this.db.hasListeners()) {
+      if (has_listeners) {
         // 更新 value
         if (getValue) {
           if (typeof getValue === 'function') {
