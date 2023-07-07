@@ -43,6 +43,11 @@ export const listen = (
         } else if (getOriginalValue === 'filter') {
           original_value = await (this as Collection).filter(args[0])
           has_original_value = true
+        } else if (getOriginalValue === 'get') {
+          if (this.type === 'dict') {
+            original_value = await this.get(args[0])
+            has_original_value = true
+          }
         }
       }
       let is_not_changed = false
@@ -62,8 +67,8 @@ export const listen = (
           }
         } else if (type === 'dict') {
           if (method_name === 'set') {
-            let [key, value] = args
-            if (original_value && key in original_value && original_value[key] === value) {
+            let value = args[1]
+            if (original_value === value) {
               is_not_changed = true
             }
           } else if (method_name === 'update') {
@@ -105,7 +110,6 @@ export const listen = (
           }
           value = lodash.cloneDeep(value)
         }
-        // console.log(action, this.type, this.name, ...values)
         // 回调事件
         this.db.callListeners({
           action,
