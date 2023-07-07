@@ -128,6 +128,72 @@ describe('events.collection', () => {
     })
   })
 
+  it('collection.add event', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      db.addListener((event) => {
+        // console.log(event)
+        if (
+          event.action === 'add' &&
+          event.type === 'collection' &&
+          event.name === 'ttcol' &&
+          event.value.x === 1
+        ) {
+          resolve()
+        }
+      })
+
+      let all = await db.collection.ttcol.all()
+      assert.equal(all.length, 0)
+
+      await db.collection.ttcol.insert({ a: 'AA', x: 1 })
+    })
+  })
+
+  it('collection.add and update event / changed', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'collection' && event.name === 'ttcol') {
+          if (event.value[0].x === 2) {
+            resolve()
+          }
+        }
+      })
+
+      let all = await db.collection.ttcol.all()
+      assert.equal(all.length, 0)
+
+      await db.collection.ttcol.addIndex('id')
+
+      await db.collection.ttcol.insert({ id: 'id1', a: 'AA', x: 1 })
+      // 值发生变化，触发 update 事件
+      await db.collection.ttcol.update(['id', 'id1'], { a: 'AA', x: 2 })
+    })
+  })
+
+  it('collection.add and update event / not changed', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'collection' && event.name === 'ttcol') {
+          reject()
+        }
+      })
+
+      let all = await db.collection.ttcol.all()
+      assert.equal(all.length, 0)
+
+      await db.collection.ttcol.addIndex('id')
+
+      await db.collection.ttcol.insert({ id: 'id1', a: 'AA', x: 1 })
+      // 值没有发生变化，不触发 update 事件
+      await db.collection.ttcol.update(['id', 'id1'], { a: 'AA', x: 1 })
+
+      setTimeout(() => {
+        // 超时没有触发事件
+        resolve()
+      }, 1000)
+    })
+  })
+
   it('collection.delete', (): Promise<void> => {
     return new Promise(async (resolve, reject) => {
       await db.collection.ttcol.insert({ a: 'AA', x: 1 })

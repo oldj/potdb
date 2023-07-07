@@ -78,7 +78,7 @@ export default class Dict {
     this.dump()
   }
 
-  @listen('update', 'all')
+  @listen('update', 'all', 'all')
   // @clone
   async update<T>(obj: Partial<T>): Promise<T> {
     this._data = await this.ensure()

@@ -45,7 +45,6 @@ export const listen = (
           has_original_value = true
         }
       }
-      // console.log(this.type, method.name)
       let is_not_changed = false
       if (action === 'update' && has_original_value) {
         // 检查传入的值是否与原值相同
@@ -53,10 +52,11 @@ export const listen = (
         let method_name = method.name
 
         if (type === 'collection' && method_name === 'update') {
-          let [filter, update] = args
-          let items = await (this as Collection).filter(filter)
-          if (items.length === 1) {
-            if (lodash.isEqual(original_value, update)) {
+          if (original_value && Array.isArray(original_value) && original_value.length === 1) {
+            let item = original_value[0]
+            let update = args[1]
+            let keys = Object.keys(update)
+            if (lodash.isEqual(lodash.pick(item, keys), update)) {
               is_not_changed = true
             }
           }
