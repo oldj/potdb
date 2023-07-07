@@ -292,6 +292,51 @@ describe('events.list', () => {
     })
   })
 
+  it('list.set changed', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let n = 0
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'list' && event.name === 'ttlist') {
+          n++
+        }
+      })
+
+      await db.list.ttlist.set(['a', 'b', 'c', { d: 'D', e: { ee: 'EE' } }])
+      await db.list.ttlist.set(['a', 'b', 'c', { d: 'D', e: { ee: 'EE2' } }])
+
+      setTimeout(() => {
+        if (n === 2) {
+          resolve()
+        } else {
+          reject()
+        }
+      }, 200)
+    })
+  })
+
+  it('list.set not changed', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let n = 0
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'list' && event.name === 'ttlist') {
+          n++
+        }
+      })
+
+      await db.list.ttlist.set(['a', 'b', 'c', { d: 'D', e: { ee: 'EE' } }])
+      await db.list.ttlist.set(['a', 'b', 'c', { d: 'D', e: { ee: 'EE2' } }])
+      await db.list.ttlist.set(['a', 'b', 'c', { d: 'D', e: { ee: 'EE2' } }])
+
+      setTimeout(() => {
+        if (n === 2) {
+          resolve()
+        } else {
+          reject()
+        }
+      }, 200)
+    })
+  })
+
   it('list.clear', (): Promise<void> => {
     return new Promise(async (resolve, reject) => {
       await db.list.ttlist.set([1, 2, 3, 4, 5])
@@ -361,6 +406,51 @@ describe('events.list', () => {
       })
 
       await db.list.ttlist.update(['a', 'b', 'c'])
+    })
+  })
+
+  it('list.update changed', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let n = 0
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'list' && event.name === 'ttlist') {
+          n++
+        }
+      })
+
+      await db.list.ttlist.update(['a', 'b', 'c', { d: 'D', e: { ee: 'EE' } }])
+      await db.list.ttlist.update(['a', 'b', 'c', { d: 'D', e: { ee: 'EE2' } }])
+
+      setTimeout(() => {
+        if (n === 2) {
+          resolve()
+        } else {
+          reject()
+        }
+      }, 200)
+    })
+  })
+
+  it('list.update not changed', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let n = 0
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'list' && event.name === 'ttlist') {
+          n++
+        }
+      })
+
+      await db.list.ttlist.update(['a', 'b', 'c', { d: 'D', e: { ee: 'EE' } }])
+      await db.list.ttlist.update(['a', 'b', 'c', { d: 'D', e: { ee: 'EE2' } }])
+      await db.list.ttlist.update(['a', 'b', 'c', { d: 'D', e: { ee: 'EE2' } }])
+
+      setTimeout(() => {
+        if (n === 2) {
+          resolve()
+        } else {
+          reject()
+        }
+      }, 200)
     })
   })
 })

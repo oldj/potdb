@@ -84,11 +84,11 @@ export default class PotSet {
 
   @listen('update', 'all')
   async clear() {
-    this._data = new Set()
+    this._data = new Set([])
     this.dump()
   }
 
-  @listen('update', 'all')
+  @listen('update', 'all', 'all')
   // @clone
   async set(data: DataTypeSetItem[]) {
     this._data = new Set(data)
@@ -103,7 +103,7 @@ export default class PotSet {
     }
   }
 
-  @listen('update', 'all')
+  @listen('update', 'all', 'all')
   async update(data: DataTypeSetItem[]) {
     this._data = new Set(data)
     this.dump()

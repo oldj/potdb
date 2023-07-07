@@ -13,8 +13,8 @@ describe('events.set', () => {
   const db = new PotDb(db_path)
 
   beforeEach(async () => {
-    await db.list.ttset.clear()
-    assert.equal((await db.list.ttset.all()).length, 0)
+    await db.set.ttset.clear()
+    assert.equal((await db.set.ttset.all()).length, 0)
   })
 
   afterEach(async () => {
@@ -116,6 +116,54 @@ describe('events.set', () => {
     })
   })
 
+  it('set.set change', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let n = 0
+
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'set' && event.name === 'ttset') {
+          n++
+        }
+      })
+
+      await db.set.ttset.set(['abc', 'def', 'ghi'])
+      await db.set.ttset.set(['abc', 'def', 'ghi', 12])
+
+      setTimeout(() => {
+        if (n === 2) {
+          resolve()
+        } else {
+          reject()
+        }
+      }, 200)
+    })
+  })
+
+  it('set.set not change', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let n = 0
+
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'set' && event.name === 'ttset') {
+          n++
+        }
+      })
+
+      await db.set.ttset.set(['abc', 'def', 'ghi'])
+      await db.set.ttset.set(['abc', 'def', 'ghi', 12])
+      await db.set.ttset.set(['abc', 'def', 'ghi', 12])
+      await db.set.ttset.set([12, 'abc', 'def', 'ghi'])
+
+      setTimeout(() => {
+        if (n === 2) {
+          resolve()
+        } else {
+          reject()
+        }
+      }, 200)
+    })
+  })
+
   it('set.remove', (): Promise<void> => {
     return new Promise(async (resolve, reject) => {
       await db.set.ttset.set([123, 124])
@@ -162,6 +210,54 @@ describe('events.set', () => {
       })
 
       await db.set.ttset.update(['abc', 'def', 'ghi'])
+    })
+  })
+
+  it('set.update change', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let n = 0
+
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'set' && event.name === 'ttset') {
+          n++
+        }
+      })
+
+      await db.set.ttset.update(['abc', 'def', 'ghi'])
+      await db.set.ttset.update(['abc', 'def', 'ghi', 12])
+
+      setTimeout(() => {
+        if (n === 2) {
+          resolve()
+        } else {
+          reject()
+        }
+      }, 200)
+    })
+  })
+
+  it('set.update not change', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let n = 0
+
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'set' && event.name === 'ttset') {
+          n++
+        }
+      })
+
+      await db.set.ttset.update(['abc', 'def', 'ghi'])
+      await db.set.ttset.update(['abc', 'def', 'ghi', 12])
+      await db.set.ttset.update(['abc', 'def', 'ghi', 12])
+      await db.set.ttset.update([12, 'abc', 'def', 'ghi'])
+
+      setTimeout(() => {
+        if (n === 2) {
+          resolve()
+        } else {
+          reject()
+        }
+      }, 200)
     })
   })
 })

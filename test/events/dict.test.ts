@@ -12,7 +12,9 @@ describe('events.dict', () => {
   const db_path = path.join(path.dirname(__dirname), 'tmp')
   const db = new PotDb(db_path)
 
-  beforeEach(async () => {})
+  beforeEach(async () => {
+    await db.dict.ttdict.remove()
+  })
 
   afterEach(async () => {
     db.clearListeners()
@@ -36,6 +38,97 @@ describe('events.dict', () => {
       })
 
       await db.dict.ttdict.update({ a: 1 })
+    })
+  })
+
+  it('dict.update change', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let n = 0
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'dict' && event.name === 'ttdict') {
+          n++
+        }
+      })
+
+      await db.dict.ttdict.update({ a: 1 })
+      await db.dict.ttdict.update({ a: 2 })
+
+      setTimeout(() => {
+        if (n === 2) {
+          resolve()
+        } else {
+          reject()
+        }
+      }, 200)
+    })
+  })
+
+  it('dict.update change & not change', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let n = 0
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'dict' && event.name === 'ttdict') {
+          n++
+        }
+      })
+
+      await db.dict.ttdict.update({ a: 1 })
+      await db.dict.ttdict.update({ a: 2 })
+      await db.dict.ttdict.update({ a: 2 })
+
+      setTimeout(() => {
+        if (n === 2) {
+          resolve()
+        } else {
+          reject()
+        }
+      }, 200)
+    })
+  })
+
+  it('dict.update change & not change with complex value', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let n = 0
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'dict' && event.name === 'ttdict') {
+          n++
+        }
+      })
+
+      await db.dict.ttdict.update({ a: { x: 1 }, b: { y: 'YYY' } })
+      await db.dict.ttdict.update({ a: { x: 2 }, b: { y: 'YYY' } })
+      await db.dict.ttdict.update({ a: { x: 2 }, b: { y: 'YYY' } })
+
+      setTimeout(() => {
+        if (n === 2) {
+          resolve()
+        } else {
+          reject()
+        }
+      }, 200)
+    })
+  })
+
+  it('dict.update with set(), change & not change', (): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+      let n = 0
+      db.addListener((event) => {
+        if (event.action === 'update' && event.type === 'dict' && event.name === 'ttdict') {
+          n++
+        }
+      })
+
+      await db.dict.ttdict.set('a', 1)
+      await db.dict.ttdict.set('a', 2)
+      await db.dict.ttdict.set('a', 2)
+
+      setTimeout(() => {
+        if (n === 2) {
+          resolve()
+        } else {
+          reject()
+        }
+      }, 200)
     })
   })
 
