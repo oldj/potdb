@@ -85,6 +85,16 @@ export const listen = (
               is_not_changed = true
             }
           }
+        } else if (type === 'set') {
+          if (method_name === 'set' || method_name === 'update') {
+            let new_set_arr = args[0]
+            if (
+              original_value &&
+              lodash.isEqual(original_value.slice().sort(), new_set_arr.slice().sort())
+            ) {
+              is_not_changed = true
+            }
+          }
         }
       }
 
