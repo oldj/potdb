@@ -263,7 +263,7 @@ describe('collection test', function () {
     let tt_dir = path.join(db.dir, 'collection', 'tt')
     let ids_fn = path.join(tt_dir, 'ids.json')
     let ids = JSON.parse(fs.readFileSync(ids_fn, 'utf8'))
-    assert.deepEqual(ids, ['1', '2', '3'])
+    assert.deepEqual(ids.sort(), ['1', '2', '3'])
 
     // 写入错误的 ids 值
     fs.writeFileSync(ids_fn, JSON.stringify(['1', '2']), 'utf8')
