@@ -212,7 +212,12 @@ describe('events.collection', () => {
           assert.equal(all[0]._id, '2')
 
           assert.equal(event.value.length, 1)
-          assert.equal(event.value[0], '1')
+          // assert.equal(event.value[0], '1')
+          let d = event.value[0]
+          assert.equal(typeof d, 'object')
+          assert.equal(d.a, 'AA')
+          assert.equal(d.x, 1)
+          assert.equal(d._id, '1')
         } catch (e) {
           reject(e)
           return
