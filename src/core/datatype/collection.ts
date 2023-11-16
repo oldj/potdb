@@ -352,7 +352,7 @@ export default class Collection {
     return list
   }
 
-  @listen('update', 'result')
+  @listen('update', 'result', 'filter')
   async update<T>(predicate: FilterPredicate | FilterByIndex, data: Partial<T>): Promise<T[]> {
     let items = await this.filter<DataTypeDocument>(predicate)
     let out: T[] = []
@@ -378,15 +378,17 @@ export default class Collection {
   @listen('delete', 'result')
   async delete(predicate: FilterPredicate | FilterByIndex) {
     let items = await this.filter<DataTypeDocument>(predicate)
-    let deleted_ids: string[] = []
+    let deleted_items: DataTypeDocument[] = []
+
     for (let { _id } of items) {
       let index = await this._ids.indexOf(_id)
       if (index === -1) continue
 
       await this._ids.splice(index, 1)
       let d = await this.getDoc(_id)
+      deleted_items.push(await d.toJSON())
       await d.remove()
-      deleted_ids.push(_id)
+
       delete this._docs[_id]
       await this.removeDocIndex(_id)
     }
@@ -395,7 +397,7 @@ export default class Collection {
       await this.removeIndex(...predicate)
     }
 
-    return deleted_ids
+    return deleted_items
   }
 
   @listen('delete', () => '*')

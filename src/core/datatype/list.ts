@@ -210,7 +210,7 @@ export default class List {
     return this._data
   }
 
-  @listen('update', 'all')
+  @listen('update', 'all', 'all')
   // @clone
   async set(data: any[]) {
     this._data = data
@@ -231,7 +231,7 @@ export default class List {
     }
   }
 
-  @listen('update', 'all')
+  @listen('update', 'all', 'all')
   async update(data: any[]) {
     this._data = data
     this.dump()
