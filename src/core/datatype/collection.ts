@@ -17,6 +17,7 @@ import { listen } from '@/utils/event'
 import { getJSONFiles } from '@/utils/getJSONFiles'
 import { isDir } from '@/utils/fs2'
 import { mergeIds } from '@/utils/tools'
+import wait from '@/utils/wait'
 
 type FilterByIndex = [string, any]
 type FilterPredicate = (item: any) => boolean
@@ -400,6 +401,17 @@ export default class Collection {
     return deleted_items
   }
 
+  async __clear() {
+    await this._meta.__clear()
+    await this._ids.__clear()
+    await this._simple_indexes.__clear()
+    this._docs = {}
+    if (this._path && fs.existsSync(this._path)) {
+      await fs.promises.rm(this._path, { recursive: true })
+      await wait(500)
+    }
+  }
+
   @listen('delete', () => '*')
   async remove() {
     // remove current collection
@@ -409,6 +421,7 @@ export default class Collection {
     this._docs = {}
     if (this._path && fs.existsSync(this._path)) {
       await fs.promises.rm(this._path, { recursive: true })
+      await wait(500)
     }
   }
 

@@ -217,10 +217,14 @@ export default class List {
     this.dump()
   }
 
-  @listen('update', 'all')
-  async clear() {
+  async __clear() {
     this._data = []
     this.dump()
+  }
+
+  @listen('update', 'all')
+  async clear() {
+    await this.__clear()
   }
 
   @listen('delete')
