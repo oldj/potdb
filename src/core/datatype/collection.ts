@@ -400,6 +400,16 @@ export default class Collection {
     return deleted_items
   }
 
+  async __clear() {
+    await this._meta.__clear()
+    await this._ids.__clear()
+    await this._simple_indexes.__clear()
+    this._docs = {}
+    if (this._path && fs.existsSync(this._path)) {
+      await fs.promises.rm(this._path, { recursive: true })
+    }
+  }
+
   @listen('delete', () => '*')
   async remove() {
     // remove current collection

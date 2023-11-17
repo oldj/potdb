@@ -324,4 +324,22 @@ export default class PotDb {
   hasListeners(): boolean {
     return this._listeners.length > 0 || Object.keys(this._named_listeners).length > 0
   }
+
+  async clearSilent() {
+    // 清空当前数据库所有数据，并且不触发任何事件
+    let keys = await this.keys()
+
+    for (let key of keys.dict) {
+      await this.dict[key].__clear()
+    }
+    for (let key of keys.list) {
+      await this.list[key].__clear()
+    }
+    for (let key of keys.set) {
+      await this.set[key].__clear()
+    }
+    for (let key of keys.collection) {
+      await this.collection[key].__clear()
+    }
+  }
 }

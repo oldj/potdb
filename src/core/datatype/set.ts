@@ -82,10 +82,14 @@ export default class PotSet {
     return Array.from(this._data)
   }
 
-  @listen('update', 'all')
-  async clear() {
+  async __clear() {
     this._data = new Set([])
     this.dump()
+  }
+
+  @listen('update', 'all')
+  async clear() {
+    await this.__clear()
   }
 
   @listen('update', 'all', 'all')
