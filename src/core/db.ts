@@ -328,18 +328,15 @@ export default class PotDb {
   async clearSilent() {
     // 清空当前数据库所有数据，并且不触发任何事件
     let keys = await this.keys()
+    let types = ['dict', 'list', 'set', 'collection'] as const
 
-    for (let key of keys.dict) {
-      await this.dict[key].__clear()
-    }
-    for (let key of keys.list) {
-      await this.list[key].__clear()
-    }
-    for (let key of keys.set) {
-      await this.set[key].__clear()
-    }
-    for (let key of keys.collection) {
-      await this.collection[key].__clear()
+    for (let type of types) {
+      let d = keys[type]
+      if (Array.isArray(d)) {
+        for (let name of d) {
+          await this[type][name].__clear()
+        }
+      }
     }
   }
 }

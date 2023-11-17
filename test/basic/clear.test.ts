@@ -4,7 +4,6 @@
  * @homepage: https://oldj.net
  */
 
-// import * as assert from 'assert'
 import { assert } from 'chai'
 // import PotDb from '../src'
 import PotDb from '../../build'
@@ -12,7 +11,9 @@ import { db_path } from '../cfgs'
 import lodash from 'lodash'
 
 describe('basic.clear', () => {
-  it('basic test', async () => {
+  it('basic test', async function () {
+    this.timeout(5000)
+
     return new Promise(async (resolve, reject) => {
       const db = new PotDb(db_path)
       // console.log(db)

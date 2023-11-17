@@ -17,6 +17,7 @@ import { listen } from '@/utils/event'
 import { getJSONFiles } from '@/utils/getJSONFiles'
 import { isDir } from '@/utils/fs2'
 import { mergeIds } from '@/utils/tools'
+import wait from '@/utils/wait'
 
 type FilterByIndex = [string, any]
 type FilterPredicate = (item: any) => boolean
@@ -407,6 +408,7 @@ export default class Collection {
     this._docs = {}
     if (this._path && fs.existsSync(this._path)) {
       await fs.promises.rm(this._path, { recursive: true })
+      await wait(500)
     }
   }
 
@@ -419,6 +421,7 @@ export default class Collection {
     this._docs = {}
     if (this._path && fs.existsSync(this._path)) {
       await fs.promises.rm(this._path, { recursive: true })
+      await wait(500)
     }
   }
 
