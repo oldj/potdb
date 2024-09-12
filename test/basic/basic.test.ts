@@ -6,7 +6,6 @@
 
 // import * as assert from 'assert'
 import { assert } from 'chai'
-import * as path from 'path'
 // import PotDb from '../src'
 import PotDb from '../../build'
 import { db_path } from '../cfgs'
